@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/site/PageHeader";
+import { appSettingsQuery, CONTACTS_PENDING_MESSAGE } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/privacidade")({
   head: () => ({
@@ -13,6 +15,8 @@ export const Route = createFileRoute("/privacidade")({
 });
 
 function PrivacidadePage() {
+  const { data: settings } = useQuery(appSettingsQuery());
+  const contact = settings?.privacy_email || settings?.support_email;
   return (
     <SiteShell>
       <PageHeader eyebrow="Documento legal" title="Política de privacidade" subtitle="Última atualização: julho de 2026." />
@@ -39,7 +43,11 @@ function PrivacidadePage() {
           qualquer momento pelo canal de suporte.
         </p>
         <h2 className="font-display text-lg font-semibold">4. Contato do encarregado</h2>
-        <p>privacidade@pagou.app</p>
+        {contact ? (
+          <p><a className="text-primary hover:underline" href={`mailto:${contact}`}>{contact}</a></p>
+        ) : (
+          <p className="text-muted-foreground">{CONTACTS_PENDING_MESSAGE}</p>
+        )}
       </article>
     </SiteShell>
   );
