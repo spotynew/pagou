@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 function AdminPanel() {
   return (
     <SiteShell>
-      <PageHeader eyebrow="PAGOU · staff" title="Painel administrativo" subtitle="Governança da plataforma: aprovações, pagamentos e auditoria." />
+      <PageHeader eyebrow="PAGOU · staff · Modo demonstração" title="Painel administrativo" subtitle="Dados fictícios para navegação. Nenhuma ação afeta pagamentos reais." />
       <div className="mx-auto max-w-7xl px-4 py-10">
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Kpi label="GMV do mês" value={formatBRL(89211700)} />

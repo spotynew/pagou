@@ -59,7 +59,7 @@ function Home() {
             </div>
             <div className="mt-10 grid grid-cols-3 gap-4 text-sm text-ink-foreground/70">
               <Trust icon={<ShieldCheck className="h-5 w-5 text-primary" />} label="Pagamento seguro" />
-              <Trust icon={<Zap className="h-5 w-5 text-primary" />} label="PIX na hora" />
+              <Trust icon={<Zap className="h-5 w-5 text-primary" />} label="PIX e cartão" />
               <Trust icon={<TicketCheck className="h-5 w-5 text-primary" />} label="Ingresso 100% digital" />
             </div>
           </div>
@@ -140,7 +140,7 @@ function Home() {
             <span className="rounded-full bg-black/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white">Para produtores</span>
             <h2 className="mt-4 font-display text-3xl font-bold text-black md:text-5xl">Venda com a PAGOU.</h2>
             <p className="mt-3 text-black/80 md:text-lg">
-              Cadastre seu evento, curso ou produto digital, receba via PIX em minutos e tenha uma bilheteria completa
+              Cadastre seu evento, curso ou produto digital, receba os repasses conforme o meio de pagamento e tenha uma bilheteria completa
               com QR Code, cupons e relatórios em tempo real.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">

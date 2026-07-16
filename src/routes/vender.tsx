@@ -24,7 +24,7 @@ function SellerLanding() {
             <span className="rounded-full bg-black/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white">Para produtores</span>
             <h1 className="mt-4 font-display text-4xl font-bold md:text-6xl">Venda como uma fintech vende.</h1>
             <p className="mt-4 max-w-xl text-black/80 md:text-lg">
-              Cadastre em minutos, receba via PIX na hora e acompanhe tudo em um painel feito para quem produz.
+              Cadastre em minutos, receba os repasses conforme o meio de pagamento e acompanhe tudo em um painel feito para quem produz.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild size="lg" variant="secondary" className="rounded-full">
@@ -37,7 +37,7 @@ function SellerLanding() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { icon: Zap, title: "PIX na hora", desc: "Receba assim que o pagamento é aprovado." },
+              { icon: Zap, title: "PIX e cartão", desc: "Aceite PIX e cartão sem integrar credenciais no site." },
               { icon: Ticket, title: "QR Code próprio", desc: "Check-in pelo celular, sem fila." },
               { icon: BarChart3, title: "Relatórios ao vivo", desc: "Vendas por lote, setor e cupom." },
               { icon: ShieldCheck, title: "Anti-fraude", desc: "Ingresso único, uso único." },
