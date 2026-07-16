@@ -84,9 +84,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "PAGOU" },
       { name: "theme-color", content: "#00c46a" },
       { property: "og:title", content: "PAGOU — Comprou. Pagou. Aproveitou." },
-      { property: "og:description", content: "A plataforma de ingressos, cursos e produtos digitais que trata seu pagamento com o cuidado de uma fintech." },
+      { property: "og:description", content: "Plataforma brasileira de venda de ingressos para shows, cursos e produtos digitais. Compra rápida, pagamento seguro, ingresso na hora." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "PAGOU — Comprou. Pagou. Aproveitou." },
+      { name: "twitter:description", content: "Plataforma brasileira de venda de ingressos para shows, cursos e produtos digitais. Compra rápida, pagamento seguro, ingresso na hora." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f455b51-e3ce-4289-b20b-a1b810d71e95/id-preview-807a0701--cf3bd5d2-50f0-4c9d-8f1d-6f75bb2d7bc9.lovable.app-1784221674264.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f455b51-e3ce-4289-b20b-a1b810d71e95/id-preview-807a0701--cf3bd5d2-50f0-4c9d-8f1d-6f75bb2d7bc9.lovable.app-1784221674264.png" },
     ],
     links: [
       {
