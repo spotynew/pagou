@@ -10,15 +10,32 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenderRouteImport } from './routes/vender'
+import { Route as ProdutorRouteImport } from './routes/produtor'
+import { Route as MinhasComprasRouteImport } from './routes/minhas-compras'
 import { Route as EventosRouteImport } from './routes/eventos'
 import { Route as CursosRouteImport } from './routes/cursos'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as CheckinRouteImport } from './routes/checkin'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProdutorIndexRouteImport } from './routes/produtor.index'
 import { Route as EventosSlugRouteImport } from './routes/eventos.$slug'
 import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
 
 const VenderRoute = VenderRouteImport.update({
   id: '/vender',
   path: '/vender',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdutorRoute = ProdutorRouteImport.update({
+  id: '/produtor',
+  path: '/produtor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MinhasComprasRoute = MinhasComprasRouteImport.update({
+  id: '/minhas-compras',
+  path: '/minhas-compras',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventosRoute = EventosRouteImport.update({
@@ -31,10 +48,35 @@ const CursosRoute = CursosRouteImport.update({
   path: '/cursos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckinRoute = CheckinRouteImport.update({
+  id: '/checkin',
+  path: '/checkin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProdutorIndexRoute = ProdutorIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProdutorRoute,
 } as any)
 const EventosSlugRoute = EventosSlugRouteImport.update({
   id: '/$slug',
@@ -49,60 +91,106 @@ const CursosSlugRoute = CursosSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/checkin': typeof CheckinRoute
+  '/checkout': typeof CheckoutRoute
   '/cursos': typeof CursosRouteWithChildren
   '/eventos': typeof EventosRouteWithChildren
+  '/minhas-compras': typeof MinhasComprasRoute
+  '/produtor': typeof ProdutorRouteWithChildren
   '/vender': typeof VenderRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
+  '/produtor/': typeof ProdutorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/checkin': typeof CheckinRoute
+  '/checkout': typeof CheckoutRoute
   '/cursos': typeof CursosRouteWithChildren
   '/eventos': typeof EventosRouteWithChildren
+  '/minhas-compras': typeof MinhasComprasRoute
   '/vender': typeof VenderRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
+  '/produtor': typeof ProdutorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/checkin': typeof CheckinRoute
+  '/checkout': typeof CheckoutRoute
   '/cursos': typeof CursosRouteWithChildren
   '/eventos': typeof EventosRouteWithChildren
+  '/minhas-compras': typeof MinhasComprasRoute
+  '/produtor': typeof ProdutorRouteWithChildren
   '/vender': typeof VenderRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
+  '/produtor/': typeof ProdutorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/auth'
+    | '/checkin'
+    | '/checkout'
     | '/cursos'
     | '/eventos'
+    | '/minhas-compras'
+    | '/produtor'
     | '/vender'
     | '/cursos/$slug'
     | '/eventos/$slug'
+    | '/produtor/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
+    | '/auth'
+    | '/checkin'
+    | '/checkout'
     | '/cursos'
     | '/eventos'
+    | '/minhas-compras'
     | '/vender'
     | '/cursos/$slug'
     | '/eventos/$slug'
+    | '/produtor'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/auth'
+    | '/checkin'
+    | '/checkout'
     | '/cursos'
     | '/eventos'
+    | '/minhas-compras'
+    | '/produtor'
     | '/vender'
     | '/cursos/$slug'
     | '/eventos/$slug'
+    | '/produtor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
+  CheckinRoute: typeof CheckinRoute
+  CheckoutRoute: typeof CheckoutRoute
   CursosRoute: typeof CursosRouteWithChildren
   EventosRoute: typeof EventosRouteWithChildren
+  MinhasComprasRoute: typeof MinhasComprasRoute
+  ProdutorRoute: typeof ProdutorRouteWithChildren
   VenderRoute: typeof VenderRoute
 }
 
@@ -113,6 +201,20 @@ declare module '@tanstack/react-router' {
       path: '/vender'
       fullPath: '/vender'
       preLoaderRoute: typeof VenderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produtor': {
+      id: '/produtor'
+      path: '/produtor'
+      fullPath: '/produtor'
+      preLoaderRoute: typeof ProdutorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/minhas-compras': {
+      id: '/minhas-compras'
+      path: '/minhas-compras'
+      fullPath: '/minhas-compras'
+      preLoaderRoute: typeof MinhasComprasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/eventos': {
@@ -129,12 +231,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CursosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkin': {
+      id: '/checkin'
+      path: '/checkin'
+      fullPath: '/checkin'
+      preLoaderRoute: typeof CheckinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/produtor/': {
+      id: '/produtor/'
+      path: '/'
+      fullPath: '/produtor/'
+      preLoaderRoute: typeof ProdutorIndexRouteImport
+      parentRoute: typeof ProdutorRoute
     }
     '/eventos/$slug': {
       id: '/eventos/$slug'
@@ -175,10 +312,28 @@ const EventosRouteChildren: EventosRouteChildren = {
 const EventosRouteWithChildren =
   EventosRoute._addFileChildren(EventosRouteChildren)
 
+interface ProdutorRouteChildren {
+  ProdutorIndexRoute: typeof ProdutorIndexRoute
+}
+
+const ProdutorRouteChildren: ProdutorRouteChildren = {
+  ProdutorIndexRoute: ProdutorIndexRoute,
+}
+
+const ProdutorRouteWithChildren = ProdutorRoute._addFileChildren(
+  ProdutorRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
+  CheckinRoute: CheckinRoute,
+  CheckoutRoute: CheckoutRoute,
   CursosRoute: CursosRouteWithChildren,
   EventosRoute: EventosRouteWithChildren,
+  MinhasComprasRoute: MinhasComprasRoute,
+  ProdutorRoute: ProdutorRouteWithChildren,
   VenderRoute: VenderRoute,
 }
 export const routeTree = rootRouteImport

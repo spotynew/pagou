@@ -7,7 +7,7 @@ export const Route = createFileRoute("/produtor")({
   component: ProducerLayout,
 });
 
-const NAV = [
+const NAV: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/produtor", label: "Visão geral", icon: LayoutDashboard, exact: true },
   { to: "/produtor/eventos", label: "Eventos", icon: Ticket },
   { to: "/produtor/cursos", label: "Cursos", icon: GraduationCap },
@@ -15,7 +15,7 @@ const NAV = [
   { to: "/produtor/participantes", label: "Participantes", icon: Users },
   { to: "/produtor/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/produtor/configuracoes", label: "Configurações", icon: Settings },
-] as const;
+];
 
 function ProducerLayout() {
   const loc = useLocation();
