@@ -48,6 +48,7 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
       .insert({
         order_id: order.id,
         provider: "mercadopago",
+        method: data.paymentMethod === "card" ? "credit_card" : "pix",
         provider_payment_id: `demo-${idem}-${Date.now()}`,
         status: "pending",
         amount_cents: order.total_cents,
