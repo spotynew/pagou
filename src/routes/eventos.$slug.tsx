@@ -1,5 +1,8 @@
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { createDraftOrder } from "@/lib/checkout.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { eventBySlugQuery } from "@/lib/queries";
 import { SiteShell } from "@/components/site/SiteShell";
 import { Button } from "@/components/ui/button";
@@ -41,6 +44,28 @@ function EventDetail() {
   const [qty, setQty] = useState(1);
 
   const selectedBatch = ticketTypes.flatMap((t) => t.ticket_batches ?? []).find((b) => b.id === selectedBatchId);
+
+  const createDraft = useServerFn(createDraftOrder);
+  const startCheckout = useMutation({
+    mutationFn: async () => {
+      if (!selectedBatch) throw new Error("Escolha um lote");
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        await navigate({ to: "/auth", search: { redirect: window.location.pathname } as any });
+        throw new Error("Faça login para continuar");
+      }
+      return createDraft({
+        data: {
+          kind: "event",
+          eventId: event.id,
+          ticketBatchId: selectedBatch.id,
+          quantity: qty,
+        },
+      });
+    },
+    onSuccess: ({ orderId }) => navigate({ to: "/checkout/$orderId", params: { orderId } }),
+    onError: (e: any) => toast.error(e?.message ?? "Não foi possível iniciar o checkout"),
+  });
 
   return (
     <SiteShell>
@@ -139,22 +164,10 @@ function EventDetail() {
               <Button
                 size="lg"
                 className="mt-4 w-full rounded-xl"
-                disabled={!selectedBatch}
-                onClick={() => {
-                  if (!selectedBatch) return;
-                  const params = new URLSearchParams({
-                    type: "event",
-                    id: event.id,
-                    batch: selectedBatch.id,
-                    qty: String(qty),
-                    title: event.title,
-                    price: String(selectedBatch.price_cents),
-                  });
-                  navigate({ to: "/checkout", search: Object.fromEntries(params) as any });
-                  toast.success("Vamos para o checkout");
-                }}
+                disabled={!selectedBatch || startCheckout.isPending}
+                onClick={() => startCheckout.mutate()}
               >
-                Comprar ingresso
+                {startCheckout.isPending ? "Reservando…" : "Comprar ingresso"}
               </Button>
               <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Pagamento processado com segurança pela PAGOU.

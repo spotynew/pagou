@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenderRouteImport } from './routes/vender'
+import { Route as TermosRouteImport } from './routes/termos'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -28,6 +30,16 @@ import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/p
 const VenderRoute = VenderRouteImport.update({
   id: '/vender',
   path: '/vender',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -107,6 +119,8 @@ const ApiPublicWebhooksMercadopagoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/vender': typeof VenderRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/checkin': typeof AuthenticatedCheckinRoute
@@ -123,6 +137,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/vender': typeof VenderRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/checkin': typeof AuthenticatedCheckinRoute
@@ -140,6 +156,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/vender': typeof VenderRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
@@ -158,6 +176,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/privacidade'
+    | '/termos'
     | '/vender'
     | '/admin'
     | '/checkin'
@@ -174,6 +194,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/privacidade'
+    | '/termos'
     | '/vender'
     | '/admin'
     | '/checkin'
@@ -190,6 +212,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/privacidade'
+    | '/termos'
     | '/vender'
     | '/_authenticated/admin'
     | '/_authenticated/checkin'
@@ -208,6 +232,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  TermosRoute: typeof TermosRoute
   VenderRoute: typeof VenderRoute
   CursosSlugRoute: typeof CursosSlugRoute
   EventosSlugRoute: typeof EventosSlugRoute
@@ -223,6 +249,20 @@ declare module '@tanstack/react-router' {
       path: '/vender'
       fullPath: '/vender'
       preLoaderRoute: typeof VenderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -362,6 +402,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
+  TermosRoute: TermosRoute,
   VenderRoute: VenderRoute,
   CursosSlugRoute: CursosSlugRoute,
   EventosSlugRoute: EventosSlugRoute,
