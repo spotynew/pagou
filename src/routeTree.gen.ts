@@ -9,38 +9,126 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VenderRouteImport } from './routes/vender'
+import { Route as EventosRouteImport } from './routes/eventos'
+import { Route as CursosRouteImport } from './routes/cursos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EventosSlugRouteImport } from './routes/eventos.$slug'
+import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
 
+const VenderRoute = VenderRouteImport.update({
+  id: '/vender',
+  path: '/vender',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventosRoute = EventosRouteImport.update({
+  id: '/eventos',
+  path: '/eventos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CursosRoute = CursosRouteImport.update({
+  id: '/cursos',
+  path: '/cursos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventosSlugRoute = EventosSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => EventosRoute,
+} as any)
+const CursosSlugRoute = CursosSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => CursosRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cursos': typeof CursosRouteWithChildren
+  '/eventos': typeof EventosRouteWithChildren
+  '/vender': typeof VenderRoute
+  '/cursos/$slug': typeof CursosSlugRoute
+  '/eventos/$slug': typeof EventosSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cursos': typeof CursosRouteWithChildren
+  '/eventos': typeof EventosRouteWithChildren
+  '/vender': typeof VenderRoute
+  '/cursos/$slug': typeof CursosSlugRoute
+  '/eventos/$slug': typeof EventosSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cursos': typeof CursosRouteWithChildren
+  '/eventos': typeof EventosRouteWithChildren
+  '/vender': typeof VenderRoute
+  '/cursos/$slug': typeof CursosSlugRoute
+  '/eventos/$slug': typeof EventosSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cursos'
+    | '/eventos'
+    | '/vender'
+    | '/cursos/$slug'
+    | '/eventos/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cursos'
+    | '/eventos'
+    | '/vender'
+    | '/cursos/$slug'
+    | '/eventos/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/cursos'
+    | '/eventos'
+    | '/vender'
+    | '/cursos/$slug'
+    | '/eventos/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CursosRoute: typeof CursosRouteWithChildren
+  EventosRoute: typeof EventosRouteWithChildren
+  VenderRoute: typeof VenderRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vender': {
+      id: '/vender'
+      path: '/vender'
+      fullPath: '/vender'
+      preLoaderRoute: typeof VenderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eventos': {
+      id: '/eventos'
+      path: '/eventos'
+      fullPath: '/eventos'
+      preLoaderRoute: typeof EventosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cursos': {
+      id: '/cursos'
+      path: '/cursos'
+      fullPath: '/cursos'
+      preLoaderRoute: typeof CursosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +136,50 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/eventos/$slug': {
+      id: '/eventos/$slug'
+      path: '/$slug'
+      fullPath: '/eventos/$slug'
+      preLoaderRoute: typeof EventosSlugRouteImport
+      parentRoute: typeof EventosRoute
+    }
+    '/cursos/$slug': {
+      id: '/cursos/$slug'
+      path: '/$slug'
+      fullPath: '/cursos/$slug'
+      preLoaderRoute: typeof CursosSlugRouteImport
+      parentRoute: typeof CursosRoute
+    }
   }
 }
 
+interface CursosRouteChildren {
+  CursosSlugRoute: typeof CursosSlugRoute
+}
+
+const CursosRouteChildren: CursosRouteChildren = {
+  CursosSlugRoute: CursosSlugRoute,
+}
+
+const CursosRouteWithChildren =
+  CursosRoute._addFileChildren(CursosRouteChildren)
+
+interface EventosRouteChildren {
+  EventosSlugRoute: typeof EventosSlugRoute
+}
+
+const EventosRouteChildren: EventosRouteChildren = {
+  EventosSlugRoute: EventosSlugRoute,
+}
+
+const EventosRouteWithChildren =
+  EventosRoute._addFileChildren(EventosRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CursosRoute: CursosRouteWithChildren,
+  EventosRoute: EventosRouteWithChildren,
+  VenderRoute: VenderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
