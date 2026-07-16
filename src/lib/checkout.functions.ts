@@ -16,9 +16,9 @@ function computeFees(subtotalCents: number, discountCents: number, method: "pix"
 
 const createDraftInput = z.object({
   kind: z.enum(["event", "course"]),
-  eventId: z.string().uuid().optional(),
-  ticketBatchId: z.string().uuid().optional(),
-  courseId: z.string().uuid().optional(),
+  eventId: z.string().min(1).optional(),
+  ticketBatchId: z.string().min(1).optional(),
+  courseId: z.string().min(1).optional(),
   quantity: z.number().int().min(1).max(MAX_QTY_HARD_CAP),
 });
 
@@ -157,7 +157,7 @@ export const createDraftOrder = createServerFn({ method: "POST" })
 
 export const getDraftOrder = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => z.object({ orderId: z.string().uuid() }).parse(raw))
+  .inputValidator((raw: unknown) => z.object({ orderId: z.string().min(1) }).parse(raw))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: order, error } = await supabase
@@ -182,7 +182,7 @@ export const confirmDraftOrder = createServerFn({ method: "POST" })
   .inputValidator((raw: unknown) =>
     z
       .object({
-        orderId: z.string().uuid(),
+        orderId: z.string().min(1),
         paymentMethod: z.enum(["pix", "card"]),
       })
       .parse(raw),
