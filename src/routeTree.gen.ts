@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenderRouteImport } from './routes/vender'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventosIndexRouteImport } from './routes/eventos.index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
@@ -30,6 +31,10 @@ const VenderRoute = VenderRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -58,25 +63,25 @@ const CursosSlugRoute = CursosSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedProdutorRoute = AuthenticatedProdutorRouteImport.update({
-  id: '/_authenticated/produtor',
+  id: '/produtor',
   path: '/produtor',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMinhasComprasRoute =
   AuthenticatedMinhasComprasRouteImport.update({
-    id: '/_authenticated/minhas-compras',
+    id: '/minhas-compras',
     path: '/minhas-compras',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
-  id: '/_authenticated/checkin',
+  id: '/checkin',
   path: '/checkin',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/_authenticated/admin',
+  id: '/admin',
   path: '/admin',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProdutorIndexRoute =
   AuthenticatedProdutorIndexRouteImport.update({
@@ -115,6 +120,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/vender': typeof VenderRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -158,6 +164,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/auth'
     | '/vender'
     | '/_authenticated/admin'
@@ -173,12 +180,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   VenderRoute: typeof VenderRoute
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
-  AuthenticatedMinhasComprasRoute: typeof AuthenticatedMinhasComprasRoute
-  AuthenticatedProdutorRoute: typeof AuthenticatedProdutorRouteWithChildren
   CursosSlugRoute: typeof CursosSlugRoute
   EventosSlugRoute: typeof EventosSlugRoute
   CursosIndexRoute: typeof CursosIndexRoute
@@ -199,6 +203,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -241,28 +252,28 @@ declare module '@tanstack/react-router' {
       path: '/produtor'
       fullPath: '/produtor'
       preLoaderRoute: typeof AuthenticatedProdutorRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/minhas-compras': {
       id: '/_authenticated/minhas-compras'
       path: '/minhas-compras'
       fullPath: '/minhas-compras'
       preLoaderRoute: typeof AuthenticatedMinhasComprasRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/checkin': {
       id: '/_authenticated/checkin'
       path: '/checkin'
       fullPath: '/checkin'
       preLoaderRoute: typeof AuthenticatedCheckinRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/produtor/': {
       id: '/_authenticated/produtor/'
@@ -287,14 +298,28 @@ const AuthenticatedProdutorRouteWithChildren =
     AuthenticatedProdutorRouteChildren,
   )
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AuthRoute: AuthRoute,
-  VenderRoute: VenderRoute,
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
+  AuthenticatedMinhasComprasRoute: typeof AuthenticatedMinhasComprasRoute
+  AuthenticatedProdutorRoute: typeof AuthenticatedProdutorRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
   AuthenticatedMinhasComprasRoute: AuthenticatedMinhasComprasRoute,
   AuthenticatedProdutorRoute: AuthenticatedProdutorRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  VenderRoute: VenderRoute,
   CursosSlugRoute: CursosSlugRoute,
   EventosSlugRoute: EventosSlugRoute,
   CursosIndexRoute: CursosIndexRoute,
