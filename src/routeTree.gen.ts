@@ -10,42 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenderRouteImport } from './routes/vender'
-import { Route as ProdutorRouteImport } from './routes/produtor'
-import { Route as MinhasComprasRouteImport } from './routes/minhas-compras'
-import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProdutorIndexRouteImport } from './routes/produtor.index'
 import { Route as EventosIndexRouteImport } from './routes/eventos.index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
 import { Route as EventosSlugRouteImport } from './routes/eventos.$slug'
 import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
+import { Route as AuthenticatedProdutorRouteImport } from './routes/_authenticated/produtor'
+import { Route as AuthenticatedMinhasComprasRouteImport } from './routes/_authenticated/minhas-compras'
+import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedProdutorIndexRouteImport } from './routes/_authenticated/produtor.index'
 
 const VenderRoute = VenderRouteImport.update({
   id: '/vender',
   path: '/vender',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProdutorRoute = ProdutorRouteImport.update({
-  id: '/produtor',
-  path: '/produtor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MinhasComprasRoute = MinhasComprasRouteImport.update({
-  id: '/minhas-compras',
-  path: '/minhas-compras',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckoutRoute = CheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckinRoute = CheckinRouteImport.update({
-  id: '/checkin',
-  path: '/checkin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -53,20 +32,10 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ProdutorIndexRoute = ProdutorIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProdutorRoute,
 } as any)
 const EventosIndexRoute = EventosIndexRouteImport.update({
   id: '/eventos/',
@@ -88,63 +57,86 @@ const CursosSlugRoute = CursosSlugRouteImport.update({
   path: '/cursos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedProdutorRoute = AuthenticatedProdutorRouteImport.update({
+  id: '/_authenticated/produtor',
+  path: '/produtor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMinhasComprasRoute =
+  AuthenticatedMinhasComprasRouteImport.update({
+    id: '/_authenticated/minhas-compras',
+    path: '/minhas-compras',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
+  id: '/_authenticated/checkin',
+  path: '/checkin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/_authenticated/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedProdutorIndexRoute =
+  AuthenticatedProdutorIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProdutorRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/checkin': typeof CheckinRoute
-  '/checkout': typeof CheckoutRoute
-  '/minhas-compras': typeof MinhasComprasRoute
-  '/produtor': typeof ProdutorRouteWithChildren
   '/vender': typeof VenderRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/checkin': typeof AuthenticatedCheckinRoute
+  '/minhas-compras': typeof AuthenticatedMinhasComprasRoute
+  '/produtor': typeof AuthenticatedProdutorRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
-  '/produtor/': typeof ProdutorIndexRoute
+  '/produtor/': typeof AuthenticatedProdutorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/checkin': typeof CheckinRoute
-  '/checkout': typeof CheckoutRoute
-  '/minhas-compras': typeof MinhasComprasRoute
   '/vender': typeof VenderRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/checkin': typeof AuthenticatedCheckinRoute
+  '/minhas-compras': typeof AuthenticatedMinhasComprasRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
   '/cursos': typeof CursosIndexRoute
   '/eventos': typeof EventosIndexRoute
-  '/produtor': typeof ProdutorIndexRoute
+  '/produtor': typeof AuthenticatedProdutorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/checkin': typeof CheckinRoute
-  '/checkout': typeof CheckoutRoute
-  '/minhas-compras': typeof MinhasComprasRoute
-  '/produtor': typeof ProdutorRouteWithChildren
   '/vender': typeof VenderRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
+  '/_authenticated/minhas-compras': typeof AuthenticatedMinhasComprasRoute
+  '/_authenticated/produtor': typeof AuthenticatedProdutorRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
-  '/produtor/': typeof ProdutorIndexRoute
+  '/_authenticated/produtor/': typeof AuthenticatedProdutorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/auth'
+    | '/vender'
+    | '/admin'
     | '/checkin'
-    | '/checkout'
     | '/minhas-compras'
     | '/produtor'
-    | '/vender'
     | '/cursos/$slug'
     | '/eventos/$slug'
     | '/cursos/'
@@ -153,12 +145,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/auth'
-    | '/checkin'
-    | '/checkout'
-    | '/minhas-compras'
     | '/vender'
+    | '/admin'
+    | '/checkin'
+    | '/minhas-compras'
     | '/cursos/$slug'
     | '/eventos/$slug'
     | '/cursos'
@@ -167,29 +158,27 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/admin'
     | '/auth'
-    | '/checkin'
-    | '/checkout'
-    | '/minhas-compras'
-    | '/produtor'
     | '/vender'
+    | '/_authenticated/admin'
+    | '/_authenticated/checkin'
+    | '/_authenticated/minhas-compras'
+    | '/_authenticated/produtor'
     | '/cursos/$slug'
     | '/eventos/$slug'
     | '/cursos/'
     | '/eventos/'
-    | '/produtor/'
+    | '/_authenticated/produtor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
-  CheckinRoute: typeof CheckinRoute
-  CheckoutRoute: typeof CheckoutRoute
-  MinhasComprasRoute: typeof MinhasComprasRoute
-  ProdutorRoute: typeof ProdutorRouteWithChildren
   VenderRoute: typeof VenderRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
+  AuthenticatedMinhasComprasRoute: typeof AuthenticatedMinhasComprasRoute
+  AuthenticatedProdutorRoute: typeof AuthenticatedProdutorRouteWithChildren
   CursosSlugRoute: typeof CursosSlugRoute
   EventosSlugRoute: typeof EventosSlugRoute
   CursosIndexRoute: typeof CursosIndexRoute
@@ -205,46 +194,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenderRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/produtor': {
-      id: '/produtor'
-      path: '/produtor'
-      fullPath: '/produtor'
-      preLoaderRoute: typeof ProdutorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/minhas-compras': {
-      id: '/minhas-compras'
-      path: '/minhas-compras'
-      fullPath: '/minhas-compras'
-      preLoaderRoute: typeof MinhasComprasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout': {
-      id: '/checkout'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof CheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkin': {
-      id: '/checkin'
-      path: '/checkin'
-      fullPath: '/checkin'
-      preLoaderRoute: typeof CheckinRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -253,13 +207,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/produtor/': {
-      id: '/produtor/'
-      path: '/'
-      fullPath: '/produtor/'
-      preLoaderRoute: typeof ProdutorIndexRouteImport
-      parentRoute: typeof ProdutorRoute
     }
     '/eventos/': {
       id: '/eventos/'
@@ -289,30 +236,65 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CursosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/produtor': {
+      id: '/_authenticated/produtor'
+      path: '/produtor'
+      fullPath: '/produtor'
+      preLoaderRoute: typeof AuthenticatedProdutorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/minhas-compras': {
+      id: '/_authenticated/minhas-compras'
+      path: '/minhas-compras'
+      fullPath: '/minhas-compras'
+      preLoaderRoute: typeof AuthenticatedMinhasComprasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/checkin': {
+      id: '/_authenticated/checkin'
+      path: '/checkin'
+      fullPath: '/checkin'
+      preLoaderRoute: typeof AuthenticatedCheckinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/produtor/': {
+      id: '/_authenticated/produtor/'
+      path: '/'
+      fullPath: '/produtor/'
+      preLoaderRoute: typeof AuthenticatedProdutorIndexRouteImport
+      parentRoute: typeof AuthenticatedProdutorRoute
+    }
   }
 }
 
-interface ProdutorRouteChildren {
-  ProdutorIndexRoute: typeof ProdutorIndexRoute
+interface AuthenticatedProdutorRouteChildren {
+  AuthenticatedProdutorIndexRoute: typeof AuthenticatedProdutorIndexRoute
 }
 
-const ProdutorRouteChildren: ProdutorRouteChildren = {
-  ProdutorIndexRoute: ProdutorIndexRoute,
+const AuthenticatedProdutorRouteChildren: AuthenticatedProdutorRouteChildren = {
+  AuthenticatedProdutorIndexRoute: AuthenticatedProdutorIndexRoute,
 }
 
-const ProdutorRouteWithChildren = ProdutorRoute._addFileChildren(
-  ProdutorRouteChildren,
-)
+const AuthenticatedProdutorRouteWithChildren =
+  AuthenticatedProdutorRoute._addFileChildren(
+    AuthenticatedProdutorRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
-  CheckinRoute: CheckinRoute,
-  CheckoutRoute: CheckoutRoute,
-  MinhasComprasRoute: MinhasComprasRoute,
-  ProdutorRoute: ProdutorRouteWithChildren,
   VenderRoute: VenderRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
+  AuthenticatedMinhasComprasRoute: AuthenticatedMinhasComprasRoute,
+  AuthenticatedProdutorRoute: AuthenticatedProdutorRouteWithChildren,
   CursosSlugRoute: CursosSlugRoute,
   EventosSlugRoute: EventosSlugRoute,
   CursosIndexRoute: CursosIndexRoute,

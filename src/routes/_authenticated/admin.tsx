@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatBRL } from "@/lib/format";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Administração — PAGOU" }] }),
   component: AdminPanel,
 });

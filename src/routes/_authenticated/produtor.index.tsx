@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { formatBRL } from "@/lib/format";
 import { ArrowUpRight, DollarSign, Ticket, TrendingUp, Users } from "lucide-react";
 
-export const Route = createFileRoute("/produtor/")({
+export const Route = createFileRoute("/_authenticated/produtor/")({
   component: ProducerOverview,
 });
 
