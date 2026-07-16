@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, formatTimeBR } from "@/lib/format";
 import { ShieldCheck, QrCode, CreditCard, Loader2, Copy } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -149,7 +149,7 @@ function CheckoutPage() {
                   <div className="mt-4 space-y-3">
                     <p className="text-sm text-muted-foreground">
                       Copie o código PIX abaixo e pague no app do seu banco. Válido até{" "}
-                      {payment.expires_at ? new Date(payment.expires_at).toLocaleTimeString("pt-BR") : "30 minutos"}.
+                      {payment.expires_at ? formatTimeBR(payment.expires_at) : "30 minutos"}.
                     </p>
                     <div className="flex items-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3">
                       <code className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-xs">
