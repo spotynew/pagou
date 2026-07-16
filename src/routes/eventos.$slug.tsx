@@ -1,4 +1,5 @@
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { createDraftOrder } from "@/lib/checkout.functions";
@@ -8,7 +9,7 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { Button } from "@/components/ui/button";
 import { formatBRL, formatDateTimeBR } from "@/lib/format";
 import { CalendarDays, MapPin, ShieldCheck, Minus, Plus, Tag } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/eventos/$slug")({
@@ -16,6 +17,14 @@ export const Route = createFileRoute("/eventos/$slug")({
     const data = await context.queryClient.ensureQueryData(eventBySlugQuery(params.slug));
     if (!data) throw notFound();
   },
+  validateSearch: (s: Record<string, unknown>) =>
+    z
+      .object({
+        batch: z.string().uuid().optional(),
+        qty: z.coerce.number().int().min(1).max(10).optional(),
+        buyNow: z.coerce.boolean().optional(),
+      })
+      .parse(s),
   head: ({ loaderData, params }) => ({
     meta: [
       { title: `${params.slug.replace(/-/g, " ")} — PAGOU` },
@@ -35,15 +44,19 @@ export const Route = createFileRoute("/eventos/$slug")({
 
 function EventDetail() {
   const { slug } = Route.useParams();
+  const search = Route.useSearch();
   const data = useSuspenseQuery(eventBySlugQuery(slug)).data!;
   const { event, ticketTypes } = data;
   const navigate = useNavigate();
 
-  const firstBatch = ticketTypes.flatMap((t) => t.ticket_batches ?? []).find((b) => b.active);
-  const [selectedBatchId, setSelectedBatchId] = useState<string | undefined>(firstBatch?.id);
-  const [qty, setQty] = useState(1);
+  const allBatches = ticketTypes.flatMap((t) => t.ticket_batches ?? []);
+  const firstBatch = allBatches.find((b) => b.active);
+  const initialBatchId =
+    (search.batch && allBatches.find((b) => b.id === search.batch)?.id) || firstBatch?.id;
+  const [selectedBatchId, setSelectedBatchId] = useState<string | undefined>(initialBatchId);
+  const [qty, setQty] = useState(search.qty ?? 1);
 
-  const selectedBatch = ticketTypes.flatMap((t) => t.ticket_batches ?? []).find((b) => b.id === selectedBatchId);
+  const selectedBatch = allBatches.find((b) => b.id === selectedBatchId);
 
   const createDraft = useServerFn(createDraftOrder);
   const startCheckout = useMutation({
@@ -51,8 +64,14 @@ function EventDetail() {
       if (!selectedBatch) throw new Error("Escolha um lote");
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
-        await navigate({ to: "/auth", search: { redirect: window.location.pathname } as any });
-        throw new Error("Faça login para continuar");
+        const params = new URLSearchParams({
+          batch: selectedBatch.id,
+          qty: String(qty),
+          buyNow: "1",
+        });
+        const redirect = `/eventos/${slug}?${params.toString()}`;
+        await navigate({ to: "/auth", search: { redirect } });
+        throw new Error("Faça login para continuar a compra");
       }
       return createDraft({
         data: {
@@ -64,8 +83,23 @@ function EventDetail() {
       });
     },
     onSuccess: ({ orderId }) => navigate({ to: "/checkout/$orderId", params: { orderId } }),
-    onError: (e: any) => toast.error(e?.message ?? "Não foi possível iniciar o checkout"),
+    onError: (e: any) =>
+      toast.error(e?.message ?? "Não foi possível iniciar o checkout. Tente novamente."),
   });
+
+  // Retomar automaticamente a compra depois do login (?buyNow=1).
+  const autoFired = useRef(false);
+  useEffect(() => {
+    if (!search.buyNow || autoFired.current) return;
+    if (!selectedBatch) return;
+    autoFired.current = true;
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+      startCheckout.mutate();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.buyNow, selectedBatch?.id]);
 
   return (
     <SiteShell>
