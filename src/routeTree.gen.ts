@@ -10,42 +10,36 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenderRouteImport } from './routes/vender'
-import { Route as ProdutorRouteImport } from './routes/produtor'
-import { Route as MinhasComprasRouteImport } from './routes/minhas-compras'
-import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as CheckinRouteImport } from './routes/checkin'
+import { Route as TermosRouteImport } from './routes/termos'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProdutorIndexRouteImport } from './routes/produtor.index'
 import { Route as EventosIndexRouteImport } from './routes/eventos.index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
 import { Route as EventosSlugRouteImport } from './routes/eventos.$slug'
 import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
+import { Route as AuthenticatedProdutorRouteImport } from './routes/_authenticated/produtor'
+import { Route as AuthenticatedMinhasComprasRouteImport } from './routes/_authenticated/minhas-compras'
+import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedProdutorIndexRouteImport } from './routes/_authenticated/produtor.index'
+import { Route as AuthenticatedCheckoutOrderIdRouteImport } from './routes/_authenticated/checkout.$orderId'
+import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
 
 const VenderRoute = VenderRouteImport.update({
   id: '/vender',
   path: '/vender',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProdutorRoute = ProdutorRouteImport.update({
-  id: '/produtor',
-  path: '/produtor',
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MinhasComprasRoute = MinhasComprasRouteImport.update({
-  id: '/minhas-compras',
-  path: '/minhas-compras',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckoutRoute = CheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckinRoute = CheckinRouteImport.update({
-  id: '/checkin',
-  path: '/checkin',
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -53,20 +47,14 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ProdutorIndexRoute = ProdutorIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProdutorRoute,
 } as any)
 const EventosIndexRoute = EventosIndexRouteImport.update({
   id: '/eventos/',
@@ -88,112 +76,170 @@ const CursosSlugRoute = CursosSlugRouteImport.update({
   path: '/cursos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedProdutorRoute = AuthenticatedProdutorRouteImport.update({
+  id: '/produtor',
+  path: '/produtor',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMinhasComprasRoute =
+  AuthenticatedMinhasComprasRouteImport.update({
+    id: '/minhas-compras',
+    path: '/minhas-compras',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
+  id: '/checkin',
+  path: '/checkin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProdutorIndexRoute =
+  AuthenticatedProdutorIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProdutorRoute,
+  } as any)
+const AuthenticatedCheckoutOrderIdRoute =
+  AuthenticatedCheckoutOrderIdRouteImport.update({
+    id: '/checkout/$orderId',
+    path: '/checkout/$orderId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicWebhooksMercadopagoRoute =
+  ApiPublicWebhooksMercadopagoRouteImport.update({
+    id: '/api/public/webhooks/mercadopago',
+    path: '/api/public/webhooks/mercadopago',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/checkin': typeof CheckinRoute
-  '/checkout': typeof CheckoutRoute
-  '/minhas-compras': typeof MinhasComprasRoute
-  '/produtor': typeof ProdutorRouteWithChildren
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/vender': typeof VenderRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/checkin': typeof AuthenticatedCheckinRoute
+  '/minhas-compras': typeof AuthenticatedMinhasComprasRoute
+  '/produtor': typeof AuthenticatedProdutorRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
-  '/produtor/': typeof ProdutorIndexRoute
+  '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
+  '/produtor/': typeof AuthenticatedProdutorIndexRoute
+  '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/checkin': typeof CheckinRoute
-  '/checkout': typeof CheckoutRoute
-  '/minhas-compras': typeof MinhasComprasRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/vender': typeof VenderRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/checkin': typeof AuthenticatedCheckinRoute
+  '/minhas-compras': typeof AuthenticatedMinhasComprasRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
   '/cursos': typeof CursosIndexRoute
   '/eventos': typeof EventosIndexRoute
-  '/produtor': typeof ProdutorIndexRoute
+  '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
+  '/produtor': typeof AuthenticatedProdutorIndexRoute
+  '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/checkin': typeof CheckinRoute
-  '/checkout': typeof CheckoutRoute
-  '/minhas-compras': typeof MinhasComprasRoute
-  '/produtor': typeof ProdutorRouteWithChildren
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/vender': typeof VenderRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
+  '/_authenticated/minhas-compras': typeof AuthenticatedMinhasComprasRoute
+  '/_authenticated/produtor': typeof AuthenticatedProdutorRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
-  '/produtor/': typeof ProdutorIndexRoute
+  '/_authenticated/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
+  '/_authenticated/produtor/': typeof AuthenticatedProdutorIndexRoute
+  '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/auth'
+    | '/privacidade'
+    | '/termos'
+    | '/vender'
+    | '/admin'
     | '/checkin'
-    | '/checkout'
     | '/minhas-compras'
     | '/produtor'
-    | '/vender'
     | '/cursos/$slug'
     | '/eventos/$slug'
     | '/cursos/'
     | '/eventos/'
+    | '/checkout/$orderId'
     | '/produtor/'
+    | '/api/public/webhooks/mercadopago'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/auth'
-    | '/checkin'
-    | '/checkout'
-    | '/minhas-compras'
+    | '/privacidade'
+    | '/termos'
     | '/vender'
+    | '/admin'
+    | '/checkin'
+    | '/minhas-compras'
     | '/cursos/$slug'
     | '/eventos/$slug'
     | '/cursos'
     | '/eventos'
+    | '/checkout/$orderId'
     | '/produtor'
+    | '/api/public/webhooks/mercadopago'
   id:
     | '__root__'
     | '/'
-    | '/admin'
+    | '/_authenticated'
     | '/auth'
-    | '/checkin'
-    | '/checkout'
-    | '/minhas-compras'
-    | '/produtor'
+    | '/privacidade'
+    | '/termos'
     | '/vender'
+    | '/_authenticated/admin'
+    | '/_authenticated/checkin'
+    | '/_authenticated/minhas-compras'
+    | '/_authenticated/produtor'
     | '/cursos/$slug'
     | '/eventos/$slug'
     | '/cursos/'
     | '/eventos/'
-    | '/produtor/'
+    | '/_authenticated/checkout/$orderId'
+    | '/_authenticated/produtor/'
+    | '/api/public/webhooks/mercadopago'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  CheckinRoute: typeof CheckinRoute
-  CheckoutRoute: typeof CheckoutRoute
-  MinhasComprasRoute: typeof MinhasComprasRoute
-  ProdutorRoute: typeof ProdutorRouteWithChildren
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  TermosRoute: typeof TermosRoute
   VenderRoute: typeof VenderRoute
   CursosSlugRoute: typeof CursosSlugRoute
   EventosSlugRoute: typeof EventosSlugRoute
   CursosIndexRoute: typeof CursosIndexRoute
   EventosIndexRoute: typeof EventosIndexRoute
+  ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -205,32 +251,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenderRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/produtor': {
-      id: '/produtor'
-      path: '/produtor'
-      fullPath: '/produtor'
-      preLoaderRoute: typeof ProdutorRouteImport
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/minhas-compras': {
-      id: '/minhas-compras'
-      path: '/minhas-compras'
-      fullPath: '/minhas-compras'
-      preLoaderRoute: typeof MinhasComprasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout': {
-      id: '/checkout'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof CheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkin': {
-      id: '/checkin'
-      path: '/checkin'
-      fullPath: '/checkin'
-      preLoaderRoute: typeof CheckinRouteImport
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -240,11 +272,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -253,13 +285,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/produtor/': {
-      id: '/produtor/'
-      path: '/'
-      fullPath: '/produtor/'
-      preLoaderRoute: typeof ProdutorIndexRouteImport
-      parentRoute: typeof ProdutorRoute
     }
     '/eventos/': {
       id: '/eventos/'
@@ -289,34 +314,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CursosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/produtor': {
+      id: '/_authenticated/produtor'
+      path: '/produtor'
+      fullPath: '/produtor'
+      preLoaderRoute: typeof AuthenticatedProdutorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/minhas-compras': {
+      id: '/_authenticated/minhas-compras'
+      path: '/minhas-compras'
+      fullPath: '/minhas-compras'
+      preLoaderRoute: typeof AuthenticatedMinhasComprasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/checkin': {
+      id: '/_authenticated/checkin'
+      path: '/checkin'
+      fullPath: '/checkin'
+      preLoaderRoute: typeof AuthenticatedCheckinRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/produtor/': {
+      id: '/_authenticated/produtor/'
+      path: '/'
+      fullPath: '/produtor/'
+      preLoaderRoute: typeof AuthenticatedProdutorIndexRouteImport
+      parentRoute: typeof AuthenticatedProdutorRoute
+    }
+    '/_authenticated/checkout/$orderId': {
+      id: '/_authenticated/checkout/$orderId'
+      path: '/checkout/$orderId'
+      fullPath: '/checkout/$orderId'
+      preLoaderRoute: typeof AuthenticatedCheckoutOrderIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/webhooks/mercadopago': {
+      id: '/api/public/webhooks/mercadopago'
+      path: '/api/public/webhooks/mercadopago'
+      fullPath: '/api/public/webhooks/mercadopago'
+      preLoaderRoute: typeof ApiPublicWebhooksMercadopagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
-interface ProdutorRouteChildren {
-  ProdutorIndexRoute: typeof ProdutorIndexRoute
+interface AuthenticatedProdutorRouteChildren {
+  AuthenticatedProdutorIndexRoute: typeof AuthenticatedProdutorIndexRoute
 }
 
-const ProdutorRouteChildren: ProdutorRouteChildren = {
-  ProdutorIndexRoute: ProdutorIndexRoute,
+const AuthenticatedProdutorRouteChildren: AuthenticatedProdutorRouteChildren = {
+  AuthenticatedProdutorIndexRoute: AuthenticatedProdutorIndexRoute,
 }
 
-const ProdutorRouteWithChildren = ProdutorRoute._addFileChildren(
-  ProdutorRouteChildren,
-)
+const AuthenticatedProdutorRouteWithChildren =
+  AuthenticatedProdutorRoute._addFileChildren(
+    AuthenticatedProdutorRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
+  AuthenticatedMinhasComprasRoute: typeof AuthenticatedMinhasComprasRoute
+  AuthenticatedProdutorRoute: typeof AuthenticatedProdutorRouteWithChildren
+  AuthenticatedCheckoutOrderIdRoute: typeof AuthenticatedCheckoutOrderIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
+  AuthenticatedMinhasComprasRoute: AuthenticatedMinhasComprasRoute,
+  AuthenticatedProdutorRoute: AuthenticatedProdutorRouteWithChildren,
+  AuthenticatedCheckoutOrderIdRoute: AuthenticatedCheckoutOrderIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  CheckinRoute: CheckinRoute,
-  CheckoutRoute: CheckoutRoute,
-  MinhasComprasRoute: MinhasComprasRoute,
-  ProdutorRoute: ProdutorRouteWithChildren,
+  PrivacidadeRoute: PrivacidadeRoute,
+  TermosRoute: TermosRoute,
   VenderRoute: VenderRoute,
   CursosSlugRoute: CursosSlugRoute,
   EventosSlugRoute: EventosSlugRoute,
   CursosIndexRoute: CursosIndexRoute,
   EventosIndexRoute: EventosIndexRoute,
+  ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

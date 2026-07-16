@@ -44,26 +44,65 @@ export type Database = {
         }
         Relationships: []
       }
+      checkin_authorizations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkin_authorizations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkins: {
         Row: {
           checked_at: string
           checked_by: string | null
+          event_id: string | null
           id: string
           ticket_id: string
         }
         Insert: {
           checked_at?: string
           checked_by?: string | null
+          event_id?: string | null
           id?: string
           ticket_id: string
         }
         Update: {
           checked_at?: string
           checked_by?: string | null
+          event_id?: string | null
           id?: string
           ticket_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "checkins_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "checkins_ticket_id_fkey"
             columns: ["ticket_id"]
@@ -233,6 +272,7 @@ export type Database = {
           featured: boolean
           id: string
           instructor_name: string | null
+          is_demo: boolean
           price_cents: number
           producer_name: string | null
           published: boolean
@@ -251,6 +291,7 @@ export type Database = {
           featured?: boolean
           id?: string
           instructor_name?: string | null
+          is_demo?: boolean
           price_cents?: number
           producer_name?: string | null
           published?: boolean
@@ -269,6 +310,7 @@ export type Database = {
           featured?: boolean
           id?: string
           instructor_name?: string | null
+          is_demo?: boolean
           price_cents?: number
           producer_name?: string | null
           published?: boolean
@@ -342,6 +384,7 @@ export type Database = {
           ends_at: string | null
           featured: boolean
           id: string
+          is_demo: boolean
           producer_name: string | null
           published: boolean
           sales_count: number
@@ -363,6 +406,7 @@ export type Database = {
           ends_at?: string | null
           featured?: boolean
           id?: string
+          is_demo?: boolean
           producer_name?: string | null
           published?: boolean
           sales_count?: number
@@ -384,6 +428,7 @@ export type Database = {
           ends_at?: string | null
           featured?: boolean
           id?: string
+          is_demo?: boolean
           producer_name?: string | null
           published?: boolean
           sales_count?: number
@@ -489,8 +534,15 @@ export type Database = {
           coupon_code: string | null
           created_at: string
           discount_cents: number
+          expires_at: string | null
+          external_reference: string | null
           fee_cents: number
           id: string
+          paid_at: string | null
+          payment_fee_cents: number
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          platform_fee_cents: number
+          seller_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal_cents: number
           total_cents: number
@@ -505,8 +557,15 @@ export type Database = {
           coupon_code?: string | null
           created_at?: string
           discount_cents?: number
+          expires_at?: string | null
+          external_reference?: string | null
           fee_cents?: number
           id?: string
+          paid_at?: string | null
+          payment_fee_cents?: number
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          platform_fee_cents?: number
+          seller_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_cents?: number
           total_cents?: number
@@ -521,48 +580,81 @@ export type Database = {
           coupon_code?: string | null
           created_at?: string
           discount_cents?: number
+          expires_at?: string | null
+          external_reference?: string | null
           fee_cents?: number
           id?: string
+          paid_at?: string | null
+          payment_fee_cents?: number
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          platform_fee_cents?: number
+          seller_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_cents?: number
           total_cents?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
           amount_cents: number
           created_at: string
+          expires_at: string | null
           id: string
           method: Database["public"]["Enums"]["payment_method"]
           order_id: string
           paid_at: string | null
+          pix_qr_code: string | null
+          pix_qr_code_base64: string | null
           provider: string | null
+          provider_payment_id: string | null
           provider_ref: string | null
+          raw_status: string | null
           status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
         }
         Insert: {
           amount_cents: number
           created_at?: string
+          expires_at?: string | null
           id?: string
           method: Database["public"]["Enums"]["payment_method"]
           order_id: string
           paid_at?: string | null
+          pix_qr_code?: string | null
+          pix_qr_code_base64?: string | null
           provider?: string | null
+          provider_payment_id?: string | null
           provider_ref?: string | null
+          raw_status?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
         }
         Update: {
           amount_cents?: number
           created_at?: string
+          expires_at?: string | null
           id?: string
           method?: Database["public"]["Enums"]["payment_method"]
           order_id?: string
           paid_at?: string | null
+          pix_qr_code?: string | null
+          pix_qr_code_base64?: string | null
           provider?: string | null
+          provider_payment_id?: string | null
           provider_ref?: string | null
+          raw_status?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
         }
         Relationships: [
           {
@@ -608,6 +700,7 @@ export type Database = {
           description: string | null
           file_url: string | null
           id: string
+          is_demo: boolean
           kind: Database["public"]["Enums"]["product_kind"]
           price_cents: number
           published: boolean
@@ -621,6 +714,7 @@ export type Database = {
           description?: string | null
           file_url?: string | null
           id?: string
+          is_demo?: boolean
           kind: Database["public"]["Enums"]["product_kind"]
           price_cents?: number
           published?: boolean
@@ -634,6 +728,7 @@ export type Database = {
           description?: string | null
           file_url?: string | null
           id?: string
+          is_demo?: boolean
           kind?: Database["public"]["Enums"]["product_kind"]
           price_cents?: number
           published?: boolean
@@ -761,12 +856,58 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_reservations: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          order_id: string
+          quantity: number
+          released: boolean
+          ticket_batch_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          order_id: string
+          quantity: number
+          released?: boolean
+          ticket_batch_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          order_id?: string
+          quantity?: number
+          released?: boolean
+          ticket_batch_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_reservations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_reservations_ticket_batch_id_fkey"
+            columns: ["ticket_batch_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_batches: {
         Row: {
           active: boolean
           created_at: string
           ends_at: string | null
           id: string
+          max_per_order: number
           name: string
           price_cents: number
           quantity_sold: number
@@ -780,6 +921,7 @@ export type Database = {
           created_at?: string
           ends_at?: string | null
           id?: string
+          max_per_order?: number
           name: string
           price_cents: number
           quantity_sold?: number
@@ -793,6 +935,7 @@ export type Database = {
           created_at?: string
           ends_at?: string | null
           id?: string
+          max_per_order?: number
           name?: string
           price_cents?: number
           quantity_sold?: number
@@ -929,6 +1072,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      available_stock: { Args: { _batch_id: string }; Returns: number }
+      expire_stale_reservations: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -938,7 +1083,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "buyer" | "seller" | "admin" | "checkin"
+      app_role: "buyer" | "producer" | "admin" | "checkin_staff"
       order_status: "pending" | "paid" | "cancelled" | "refunded" | "expired"
       payment_method: "pix" | "credit_card"
       payment_status: "pending" | "approved" | "rejected" | "refunded"
@@ -1072,7 +1217,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["buyer", "seller", "admin", "checkin"],
+      app_role: ["buyer", "producer", "admin", "checkin_staff"],
       order_status: ["pending", "paid", "cancelled", "refunded", "expired"],
       payment_method: ["pix", "credit_card"],
       payment_status: ["pending", "approved", "rejected", "refunded"],

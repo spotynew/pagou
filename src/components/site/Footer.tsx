@@ -22,15 +22,15 @@ export function Footer() {
           <FooterLink to="/checkin">Check-in</FooterLink>
         </FooterCol>
         <FooterCol title="Institucional">
-          <FooterLink to="/">Termos</FooterLink>
-          <FooterLink to="/">Privacidade</FooterLink>
-          <FooterLink to="/">Suporte</FooterLink>
+          <FooterLink to="/termos">Termos de uso</FooterLink>
+          <FooterLink to="/privacidade">Privacidade</FooterLink>
+          <FooterLink to="/vender">Suporte</FooterLink>
         </FooterCol>
       </div>
       <div className="border-t border-ink-foreground/10">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-2 px-4 py-6 text-xs text-ink-foreground/60 md:flex-row">
-          <span>© {new Date().getFullYear()} PAGOU Tecnologia Ltda.</span>
-          <span>CNPJ 00.000.000/0001-00 — Todos os direitos reservados.</span>
+          <span>© {new Date().getFullYear()} PAGOU · plataforma em fase de lançamento</span>
+          <span>Todos os direitos reservados.</span>
         </div>
       </div>
     </footer>

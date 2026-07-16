@@ -1,5 +1,9 @@
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { createDraftOrder } from "@/lib/checkout.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { courseBySlugQuery } from "@/lib/queries";
 import { SiteShell } from "@/components/site/SiteShell";
 import { Button } from "@/components/ui/button";
@@ -28,6 +32,20 @@ function CourseDetail() {
   const navigate = useNavigate();
   const totalLessons = modules.reduce((n, m: any) => n + (m.course_lessons?.length ?? 0), 0);
 
+  const createDraft = useServerFn(createDraftOrder);
+  const startCheckout = useMutation({
+    mutationFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        await navigate({ to: "/auth", search: { redirect: window.location.pathname } as any });
+        throw new Error("Faça login para continuar");
+      }
+      return createDraft({ data: { kind: "course", courseId: course.id, quantity: 1 } });
+    },
+    onSuccess: ({ orderId }) => navigate({ to: "/checkout/$orderId", params: { orderId } }),
+    onError: (e: any) => toast.error(e?.message ?? "Não foi possível iniciar o checkout"),
+  });
+
   return (
     <SiteShell>
       <div className="border-b border-border bg-ink text-ink-foreground">
@@ -55,18 +73,10 @@ function CourseDetail() {
             <Button
               size="lg"
               className="mt-4 w-full rounded-xl"
-              onClick={() => {
-                const params = new URLSearchParams({
-                  type: "course",
-                  id: course.id,
-                  qty: "1",
-                  title: course.title,
-                  price: String(course.price_cents),
-                });
-                navigate({ to: "/checkout", search: Object.fromEntries(params) as any });
-              }}
+              disabled={startCheckout.isPending}
+              onClick={() => startCheckout.mutate()}
             >
-              Comprar curso
+              {startCheckout.isPending ? "Reservando…" : "Comprar curso"}
             </Button>
             <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Acesso liberado após confirmação do pagamento.

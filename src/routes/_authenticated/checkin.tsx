@@ -9,7 +9,7 @@ import { useState } from "react";
 
 type Status = "valid" | "used" | "invalid" | "cancelled" | null;
 
-export const Route = createFileRoute("/checkin")({
+export const Route = createFileRoute("/_authenticated/checkin")({
   head: () => ({ meta: [{ title: "Check-in — PAGOU" }] }),
   component: CheckinPage,
 });

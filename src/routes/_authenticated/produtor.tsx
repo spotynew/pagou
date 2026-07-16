@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-rout
 import { SiteShell } from "@/components/site/SiteShell";
 import { LayoutDashboard, Ticket, GraduationCap, Users, Tag, Settings, BarChart3 } from "lucide-react";
 
-export const Route = createFileRoute("/produtor")({
+export const Route = createFileRoute("/_authenticated/produtor")({
   head: () => ({ meta: [{ title: "Painel do produtor — PAGOU" }] }),
   component: ProducerLayout,
 });

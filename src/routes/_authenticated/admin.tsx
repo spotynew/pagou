@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatBRL } from "@/lib/format";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Administração — PAGOU" }] }),
   component: AdminPanel,
 });
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/admin")({
 function AdminPanel() {
   return (
     <SiteShell>
-      <PageHeader eyebrow="PAGOU · staff" title="Painel administrativo" subtitle="Governança da plataforma: aprovações, pagamentos e auditoria." />
+      <PageHeader eyebrow="PAGOU · staff · Modo demonstração" title="Painel administrativo" subtitle="Dados fictícios para navegação. Nenhuma ação afeta pagamentos reais." />
       <div className="mx-auto max-w-7xl px-4 py-10">
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Kpi label="GMV do mês" value={formatBRL(89211700)} />

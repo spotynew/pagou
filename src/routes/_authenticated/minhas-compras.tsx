@@ -8,7 +8,7 @@ import { formatBRL, formatDateTimeBR } from "@/lib/format";
 import { QRCodeSVG } from "qrcode.react";
 import { Download, PlayCircle, Ticket, ShieldCheck } from "lucide-react";
 
-export const Route = createFileRoute("/minhas-compras")({
+export const Route = createFileRoute("/_authenticated/minhas-compras")({
   head: () => ({ meta: [{ title: "Minhas compras — PAGOU" }] }),
   component: MyPurchases,
 });
