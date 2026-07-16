@@ -54,7 +54,7 @@ function EventDetail() {
   const initialBatchId =
     (search.batch && allBatches.find((b) => b.id === search.batch)?.id) || firstBatch?.id;
   const [selectedBatchId, setSelectedBatchId] = useState<string | undefined>(initialBatchId);
-  const [qty, setQty] = useState(search.qty ?? 1);
+  const [qty, setQty] = useState<number>(search.qty ?? 1);
 
   const selectedBatch = allBatches.find((b) => b.id === selectedBatchId);
 
