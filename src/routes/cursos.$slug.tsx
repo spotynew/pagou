@@ -37,13 +37,14 @@ function CourseDetail() {
     mutationFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
-        await navigate({ to: "/auth", search: { redirect: window.location.pathname } as any });
-        throw new Error("Faça login para continuar");
+        await navigate({ to: "/auth", search: { redirect: `/cursos/${slug}` } });
+        throw new Error("Faça login para continuar a compra");
       }
       return createDraft({ data: { kind: "course", courseId: course.id, quantity: 1 } });
     },
     onSuccess: ({ orderId }) => navigate({ to: "/checkout/$orderId", params: { orderId } }),
-    onError: (e: any) => toast.error(e?.message ?? "Não foi possível iniciar o checkout"),
+    onError: (e: any) =>
+      toast.error(e?.message ?? "Não foi possível iniciar o checkout. Tente novamente."),
   });
 
   return (
