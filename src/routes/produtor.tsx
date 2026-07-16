@@ -29,7 +29,7 @@ function ProducerLayout() {
               {NAV.map((n) => {
                 const active = n.exact ? loc.pathname === n.to : loc.pathname.startsWith(n.to);
                 return (
-                  <Link key={n.to} to={n.to} className={"flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium " + (active ? "bg-primary/10 text-primary" : "text-foreground/80 hover:bg-secondary")}>
+                  <Link key={n.to} to={n.to as any} className={"flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium " + (active ? "bg-primary/10 text-primary" : "text-foreground/80 hover:bg-secondary")}>
                     <n.icon className="h-4 w-4" /> {n.label}
                   </Link>
                 );
