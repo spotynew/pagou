@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { SiteShell } from "@/components/site/SiteShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,12 +13,29 @@ import { ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Entrar — PAGOU" }] }),
+  validateSearch: (s: Record<string, unknown>) =>
+    z.object({ redirect: z.string().optional() }).parse(s),
   component: AuthPage,
 });
 
 function AuthPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [loading, setLoading] = useState(false);
+
+  // Apenas caminhos internos (mesma origem) — nunca URLs externas.
+  const safeRedirect =
+    search.redirect && search.redirect.startsWith("/") && !search.redirect.startsWith("//")
+      ? search.redirect
+      : null;
+
+  function goAfterAuth() {
+    if (safeRedirect) {
+      window.location.assign(safeRedirect);
+      return;
+    }
+    navigate({ to: "/minhas-compras" });
+  }
 
   async function signIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -27,7 +45,7 @@ function AuthPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Bem-vindo de volta!");
-    navigate({ to: "/minhas-compras" });
+    goAfterAuth();
   }
 
   async function signUp(e: React.FormEvent<HTMLFormElement>) {
@@ -44,16 +62,18 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Conta criada! Verifique seu e-mail.");
+    toast.success("Conta criada! Verifique seu e-mail para confirmar o acesso.");
   }
 
   async function google() {
     try {
       const { lovable } = await import("@/integrations/lovable/index");
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
       if (result.error) return toast.error("Não foi possível entrar com o Google.");
       if (result.redirected) return;
-      navigate({ to: "/minhas-compras" });
+      goAfterAuth();
     } catch {
       toast.error("Login com Google indisponível.");
     }
@@ -69,7 +89,7 @@ function AuthPage() {
             <p className="mt-4 text-ink-foreground/70">Compra em segundos, ingresso instantâneo, curso liberado após aprovação.</p>
           </div>
           <div className="flex items-center gap-2 text-xs text-ink-foreground/60">
-            <ShieldCheck className="h-4 w-4 text-primary" /> Dados protegidos com criptografia de ponta a ponta.
+            <ShieldCheck className="h-4 w-4 text-primary" /> Seus dados são protegidos durante a transmissão e o armazenamento.
           </div>
         </div>
         <div className="flex flex-col justify-center">
@@ -107,7 +127,10 @@ function AuthPage() {
             </Tabs>
 
             <p className="mt-6 text-center text-xs text-muted-foreground">
-              Ao continuar, você concorda com nossos <Link to="/" className="text-primary hover:underline">Termos</Link>.
+              Ao continuar, você concorda com nossos{" "}
+              <Link to="/termos" className="text-primary hover:underline">Termos</Link>{" "}
+              e nossa{" "}
+              <Link to="/privacidade" className="text-primary hover:underline">Política de privacidade</Link>.
             </p>
           </div>
         </div>
