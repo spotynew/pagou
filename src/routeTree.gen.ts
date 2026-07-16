@@ -22,6 +22,7 @@ import { Route as AuthenticatedMinhasComprasRouteImport } from './routes/_authen
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedProdutorIndexRouteImport } from './routes/_authenticated/produtor.index'
+import { Route as AuthenticatedCheckoutOrderIdRouteImport } from './routes/_authenticated/checkout.$orderId'
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
 
 const VenderRoute = VenderRouteImport.update({
@@ -90,6 +91,12 @@ const AuthenticatedProdutorIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedProdutorRoute,
   } as any)
+const AuthenticatedCheckoutOrderIdRoute =
+  AuthenticatedCheckoutOrderIdRouteImport.update({
+    id: '/checkout/$orderId',
+    path: '/checkout/$orderId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicWebhooksMercadopagoRoute =
   ApiPublicWebhooksMercadopagoRouteImport.update({
     id: '/api/public/webhooks/mercadopago',
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/eventos/$slug': typeof EventosSlugRoute
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
+  '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
   '/produtor/': typeof AuthenticatedProdutorIndexRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
@@ -123,6 +131,7 @@ export interface FileRoutesByTo {
   '/eventos/$slug': typeof EventosSlugRoute
   '/cursos': typeof CursosIndexRoute
   '/eventos': typeof EventosIndexRoute
+  '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
   '/produtor': typeof AuthenticatedProdutorIndexRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
@@ -140,6 +149,7 @@ export interface FileRoutesById {
   '/eventos/$slug': typeof EventosSlugRoute
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
+  '/_authenticated/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
   '/_authenticated/produtor/': typeof AuthenticatedProdutorIndexRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/eventos/$slug'
     | '/cursos/'
     | '/eventos/'
+    | '/checkout/$orderId'
     | '/produtor/'
     | '/api/public/webhooks/mercadopago'
   fileRoutesByTo: FileRoutesByTo
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/eventos/$slug'
     | '/cursos'
     | '/eventos'
+    | '/checkout/$orderId'
     | '/produtor'
     | '/api/public/webhooks/mercadopago'
   id:
@@ -187,6 +199,7 @@ export interface FileRouteTypes {
     | '/eventos/$slug'
     | '/cursos/'
     | '/eventos/'
+    | '/_authenticated/checkout/$orderId'
     | '/_authenticated/produtor/'
     | '/api/public/webhooks/mercadopago'
   fileRoutesById: FileRoutesById
@@ -296,6 +309,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProdutorIndexRouteImport
       parentRoute: typeof AuthenticatedProdutorRoute
     }
+    '/_authenticated/checkout/$orderId': {
+      id: '/_authenticated/checkout/$orderId'
+      path: '/checkout/$orderId'
+      fullPath: '/checkout/$orderId'
+      preLoaderRoute: typeof AuthenticatedCheckoutOrderIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/webhooks/mercadopago': {
       id: '/api/public/webhooks/mercadopago'
       path: '/api/public/webhooks/mercadopago'
@@ -324,6 +344,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
   AuthenticatedMinhasComprasRoute: typeof AuthenticatedMinhasComprasRoute
   AuthenticatedProdutorRoute: typeof AuthenticatedProdutorRouteWithChildren
+  AuthenticatedCheckoutOrderIdRoute: typeof AuthenticatedCheckoutOrderIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -331,6 +352,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
   AuthenticatedMinhasComprasRoute: AuthenticatedMinhasComprasRoute,
   AuthenticatedProdutorRoute: AuthenticatedProdutorRouteWithChildren,
+  AuthenticatedCheckoutOrderIdRoute: AuthenticatedCheckoutOrderIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
