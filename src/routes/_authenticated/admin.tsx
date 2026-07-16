@@ -4,7 +4,15 @@ import { PageHeader } from "@/components/site/PageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { formatBRL } from "@/lib/format";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { appSettingsQuery } from "@/lib/app-settings";
+import { updateAppSettings } from "@/lib/app-settings.functions";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Administração — PAGOU" }] }),
@@ -29,6 +37,7 @@ function AdminPanel() {
             <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
             <TabsTrigger value="reembolsos">Reembolsos</TabsTrigger>
             <TabsTrigger value="auditoria">Auditoria</TabsTrigger>
+            <TabsTrigger value="contato">Contato</TabsTrigger>
           </TabsList>
 
           <TabsContent value="vendedores" className="mt-6">
@@ -64,9 +73,9 @@ function AdminPanel() {
           <TabsContent value="auditoria" className="mt-6">
             <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
               {[
-                "Admin ana@pagou.com aprovou vendedor ACC-101",
+                "Administrador aprovou vendedor ACC-101",
                 "Sistema registrou webhook aprovado para PGU-9012",
-                "Admin luis@pagou.com suspendeu produto PRD-441",
+                "Administrador suspendeu produto PRD-441",
               ].map((l, i) => (
                 <li key={i} className="flex items-center justify-between p-4 text-sm">
                   <span>{l}</span>
@@ -75,9 +84,71 @@ function AdminPanel() {
               ))}
             </ul>
           </TabsContent>
+
+          <TabsContent value="contato" className="mt-6">
+            <ContactSettings />
+          </TabsContent>
         </Tabs>
       </div>
     </SiteShell>
+  );
+}
+
+function ContactSettings() {
+  const qc = useQueryClient();
+  const { data } = useQuery(appSettingsQuery());
+  const update = useServerFn(updateAppSettings);
+  const [supportEmail, setSupportEmail] = useState("");
+  const [privacyEmail, setPrivacyEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+
+  useEffect(() => {
+    setSupportEmail(data?.support_email ?? "");
+    setPrivacyEmail(data?.privacy_email ?? "");
+    setWhatsapp(data?.whatsapp_support ?? "");
+  }, [data?.support_email, data?.privacy_email, data?.whatsapp_support]);
+
+  const save = useMutation({
+    mutationFn: () =>
+      update({
+        data: {
+          support_email: supportEmail.trim(),
+          privacy_email: privacyEmail.trim(),
+          whatsapp_support: whatsapp.trim(),
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Canais de atendimento atualizados.");
+      qc.invalidateQueries({ queryKey: ["app-settings"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Não foi possível salvar."),
+  });
+
+  return (
+    <div className="max-w-2xl rounded-2xl border border-border bg-card p-6 shadow-card">
+      <h3 className="font-display text-lg font-semibold">Canais de atendimento</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Se algum campo ficar em branco, o site exibe apenas “Canais de atendimento em implantação.”
+        no lugar de contatos fictícios.
+      </p>
+      <div className="mt-6 grid gap-4">
+        <div>
+          <Label htmlFor="support">E-mail de suporte</Label>
+          <Input id="support" type="email" value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} placeholder="suporte@suaempresa.com" />
+        </div>
+        <div>
+          <Label htmlFor="privacy">E-mail de privacidade (LGPD)</Label>
+          <Input id="privacy" type="email" value={privacyEmail} onChange={(e) => setPrivacyEmail(e.target.value)} placeholder="privacidade@suaempresa.com" />
+        </div>
+        <div>
+          <Label htmlFor="wa">WhatsApp de suporte</Label>
+          <Input id="wa" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+55 11 99999-9999" />
+        </div>
+      </div>
+      <Button className="mt-6" disabled={save.isPending} onClick={() => save.mutate()}>
+        {save.isPending ? "Salvando…" : "Salvar canais"}
+      </Button>
+    </div>
   );
 }
 
