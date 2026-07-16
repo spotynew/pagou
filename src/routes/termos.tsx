@@ -47,4 +47,3 @@ function TermosPage() {
     </SiteShell>
   );
 }
-*** End Patch

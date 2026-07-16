@@ -44,4 +44,3 @@ function PrivacidadePage() {
     </SiteShell>
   );
 }
-*** End Patch
