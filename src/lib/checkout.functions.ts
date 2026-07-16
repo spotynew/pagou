@@ -209,7 +209,7 @@ export const confirmDraftOrder = createServerFn({ method: "POST" })
     const { error: uErr } = await supabase
       .from("orders")
       .update({
-        payment_method: data.paymentMethod,
+        payment_method: data.paymentMethod === "card" ? "credit_card" : "pix",
         platform_fee_cents: platformFee,
         payment_fee_cents: paymentFee,
         fee_cents: platformFee,
