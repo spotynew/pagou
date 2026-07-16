@@ -19,8 +19,6 @@ const demoOrders = [
   { id: "PGU-7811", title: "Festival Verão SP", type: "Ingresso", when: "2026-01-18T20:00:00Z", amount: 22000, status: "Pendente" as const },
 ];
 
-export default function () {}
-
 function MyPurchases() {
   return (
     <SiteShell>
