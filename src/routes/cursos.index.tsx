@@ -5,7 +5,7 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/site/PageHeader";
 import { CourseCard } from "@/components/site/CourseCard";
 
-export const Route = createFileRoute("/cursos")({
+export const Route = createFileRoute("/cursos/")({
   head: () => ({
     meta: [
       { title: "Cursos online — PAGOU" },

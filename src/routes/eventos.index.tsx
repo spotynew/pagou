@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
-export const Route = createFileRoute("/eventos")({
+export const Route = createFileRoute("/eventos/")({
   head: () => ({
     meta: [
       { title: "Eventos e shows — PAGOU" },
