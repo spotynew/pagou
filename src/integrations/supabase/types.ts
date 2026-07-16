@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          id: boolean
+          privacy_email: string | null
+          support_email: string | null
+          updated_at: string
+          whatsapp_support: string | null
+        }
+        Insert: {
+          id?: boolean
+          privacy_email?: string | null
+          support_email?: string | null
+          updated_at?: string
+          whatsapp_support?: string | null
+        }
+        Update: {
+          id?: boolean
+          privacy_email?: string | null
+          support_email?: string | null
+          updated_at?: string
+          whatsapp_support?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
