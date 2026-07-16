@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/site/PageHeader";
+import { appSettingsQuery, CONTACTS_PENDING_MESSAGE } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/termos")({
   head: () => ({
@@ -13,6 +15,9 @@ export const Route = createFileRoute("/termos")({
 });
 
 function TermosPage() {
+  const { data: settings } = useQuery(appSettingsQuery());
+  const support = settings?.support_email;
+  const whatsapp = settings?.whatsapp_support;
   return (
     <SiteShell>
       <PageHeader eyebrow="Documento legal" title="Termos de uso" subtitle="Última atualização: julho de 2026." />
@@ -40,9 +45,18 @@ function TermosPage() {
           direcionados ao suporte da PAGOU em até 7 dias corridos.
         </p>
         <h2 className="font-display text-lg font-semibold">4. Contato</h2>
-        <p>
-          Dúvidas ou solicitações: suporte@pagou.app.
-        </p>
+        {support || whatsapp ? (
+          <p>
+            Dúvidas ou solicitações:{" "}
+            {support && (
+              <a className="text-primary hover:underline" href={`mailto:${support}`}>{support}</a>
+            )}
+            {support && whatsapp && " · "}
+            {whatsapp && <span>WhatsApp: {whatsapp}</span>}.
+          </p>
+        ) : (
+          <p className="text-muted-foreground">{CONTACTS_PENDING_MESSAGE}</p>
+        )}
       </article>
     </SiteShell>
   );
