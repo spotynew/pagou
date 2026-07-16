@@ -16,9 +16,9 @@ function computeFees(subtotalCents: number, discountCents: number, method: "pix"
 
 const createDraftInput = z.object({
   kind: z.enum(["event", "course"]),
-  eventId: z.string().uuid().optional(),
-  ticketBatchId: z.string().uuid().optional(),
-  courseId: z.string().uuid().optional(),
+  eventId: z.string().min(1).optional(),
+  ticketBatchId: z.string().min(1).optional(),
+  courseId: z.string().min(1).optional(),
   quantity: z.number().int().min(1).max(MAX_QTY_HARD_CAP),
 });
 
