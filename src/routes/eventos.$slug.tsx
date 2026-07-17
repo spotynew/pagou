@@ -49,6 +49,25 @@ function EventDetail() {
   const { event, ticketTypes } = data;
   const navigate = useNavigate();
 
+  const [authLoading, setAuthLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!mounted) return;
+      setUserId(data.user?.id ?? null);
+      setAuthLoading(false);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setUserId(s?.user?.id ?? null);
+      setAuthLoading(false);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
   const allBatches = ticketTypes.flatMap((t) => t.ticket_batches ?? []);
   const firstBatch = allBatches.find((b) => b.active);
   const initialBatchId =
@@ -62,17 +81,6 @@ function EventDetail() {
   const startCheckout = useMutation({
     mutationFn: async () => {
       if (!selectedBatch) throw new Error("Escolha um lote");
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        const params = new URLSearchParams({
-          batch: selectedBatch.id,
-          qty: String(qty),
-          buyNow: "1",
-        });
-        const redirect = `/eventos/${slug}?${params.toString()}`;
-        await navigate({ to: "/auth", search: { redirect } });
-        throw new Error("Faça login para continuar a compra");
-      }
       return createDraft({
         data: {
           kind: "event",
@@ -87,19 +95,34 @@ function EventDetail() {
       toast.error(e?.message ?? "Não foi possível iniciar o checkout. Tente novamente."),
   });
 
+  function handleBuyClick() {
+    if (!selectedBatch) {
+      toast.error("Escolha um lote para continuar.");
+      return;
+    }
+    if (authLoading) return;
+    if (!userId) {
+      const params = new URLSearchParams({
+        batch: selectedBatch.id,
+        qty: String(qty),
+        buyNow: "1",
+      });
+      const destination = `/eventos/${slug}?${params.toString()}`;
+      navigate({ to: "/auth", search: { redirect: destination } });
+      return;
+    }
+    startCheckout.mutate();
+  }
+
   // Retomar automaticamente a compra depois do login (?buyNow=1).
   const autoFired = useRef(false);
   useEffect(() => {
     if (!search.buyNow || autoFired.current) return;
-    if (!selectedBatch) return;
+    if (authLoading || !userId || !selectedBatch) return;
     autoFired.current = true;
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-      startCheckout.mutate();
-    })();
+    startCheckout.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search.buyNow, selectedBatch?.id]);
+  }, [search.buyNow, selectedBatch?.id, authLoading, userId]);
 
   return (
     <SiteShell>
@@ -198,10 +221,10 @@ function EventDetail() {
               <Button
                 size="lg"
                 className="mt-4 w-full rounded-xl"
-                disabled={!selectedBatch || startCheckout.isPending}
-                onClick={() => startCheckout.mutate()}
+                disabled={!selectedBatch || authLoading || startCheckout.isPending}
+                onClick={handleBuyClick}
               >
-                {startCheckout.isPending ? "Reservando…" : "Comprar ingresso"}
+                {authLoading ? "Carregando…" : startCheckout.isPending ? "Reservando…" : "Comprar ingresso"}
               </Button>
               <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Pagamento processado com segurança pela PAGOU.

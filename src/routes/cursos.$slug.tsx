@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { createDraftOrder } from "@/lib/checkout.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useEffect, useRef, useState } from "react";
 import { courseBySlugQuery } from "@/lib/queries";
 import { SiteShell } from "@/components/site/SiteShell";
 import { Button } from "@/components/ui/button";
@@ -32,20 +33,54 @@ function CourseDetail() {
   const navigate = useNavigate();
   const totalLessons = modules.reduce((n, m: any) => n + (m.course_lessons?.length ?? 0), 0);
 
+  const [authLoading, setAuthLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!mounted) return;
+      setUserId(data.user?.id ?? null);
+      setAuthLoading(false);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setUserId(s?.user?.id ?? null);
+      setAuthLoading(false);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
   const createDraft = useServerFn(createDraftOrder);
   const startCheckout = useMutation({
-    mutationFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        await navigate({ to: "/auth", search: { redirect: `/cursos/${slug}` } });
-        throw new Error("Faça login para continuar a compra");
-      }
-      return createDraft({ data: { kind: "course", courseId: course.id, quantity: 1 } });
-    },
+    mutationFn: async () =>
+      createDraft({ data: { kind: "course", courseId: course.id, quantity: 1 } }),
     onSuccess: ({ orderId }) => navigate({ to: "/checkout/$orderId", params: { orderId } }),
     onError: (e: any) =>
       toast.error(e?.message ?? "Não foi possível iniciar o checkout. Tente novamente."),
   });
+
+  function handleBuyClick() {
+    if (authLoading) return;
+    if (!userId) {
+      const destination = `/cursos/${slug}?buyNow=1`;
+      navigate({ to: "/auth", search: { redirect: destination } });
+      return;
+    }
+    startCheckout.mutate();
+  }
+
+  // Retomar automaticamente após login (?buyNow=1).
+  const autoFired = useRef(false);
+  const buyNow = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("buyNow") === "1";
+  useEffect(() => {
+    if (!buyNow || autoFired.current) return;
+    if (authLoading || !userId) return;
+    autoFired.current = true;
+    startCheckout.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buyNow, authLoading, userId]);
 
   return (
     <SiteShell>
@@ -74,10 +109,10 @@ function CourseDetail() {
             <Button
               size="lg"
               className="mt-4 w-full rounded-xl"
-              disabled={startCheckout.isPending}
-              onClick={() => startCheckout.mutate()}
+              disabled={authLoading || startCheckout.isPending}
+              onClick={handleBuyClick}
             >
-              {startCheckout.isPending ? "Reservando…" : "Comprar curso"}
+              {authLoading ? "Carregando…" : startCheckout.isPending ? "Reservando…" : "Comprar curso"}
             </Button>
             <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Acesso liberado após confirmação do pagamento.
