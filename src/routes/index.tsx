@@ -13,6 +13,10 @@ import { useState } from "react";
 import { DemoNotice } from "@/components/site/DemoNotice";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [{ property: "og:url", content: "https://pagou.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://pagou.lovable.app/" }],
+  }),
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(featuredEventsQuery),
