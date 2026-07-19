@@ -25,8 +25,8 @@ function accessToken() {
 function mercadoPagoDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) throw new Error("Data de expiração inválida");
-  // A API de Pagamentos exige segundos e offset explícito, sem milissegundos.
-  return `${date.toISOString().slice(0, 19)}+00:00`;
+  // O Mercado Pago documenta milissegundos e offset explícito no ISO 8601.
+  return date.toISOString().replace(/Z$/, "+00:00");
 }
 
 async function mercadoPagoRequest<T>(path: string, init?: RequestInit): Promise<T> {
