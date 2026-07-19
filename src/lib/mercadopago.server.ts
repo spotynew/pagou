@@ -22,13 +22,6 @@ function accessToken() {
   return token;
 }
 
-function mercadoPagoDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) throw new Error("Data de expiração inválida");
-  // O Mercado Pago documenta milissegundos e offset explícito no ISO 8601.
-  return date.toISOString().replace(/Z$/, "+00:00");
-}
-
 async function mercadoPagoRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
@@ -81,13 +74,12 @@ export async function createPixPayment(input: {
 
   return mercadoPagoRequest<MercadoPagoPayment>("/v1/payments", {
     method: "POST",
-    headers: { "X-Idempotency-Key": `pagou-${input.orderId}-pix-v1` },
+    headers: { "X-Idempotency-Key": `pagou-${input.orderId}-pix-v2` },
     body: JSON.stringify({
       transaction_amount: input.amountCents / 100,
       description: input.description.slice(0, 250),
       payment_method_id: "pix",
       external_reference: input.orderId,
-      date_of_expiration: mercadoPagoDate(input.expiresAt),
       ...(notificationUrl ? { notification_url: notificationUrl } : {}),
       payer,
     }),
