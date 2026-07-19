@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site/SiteShell";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Zap, BarChart3, Ticket, ShieldCheck } from "lucide-react";
+import { Zap, BarChart3, Ticket } from "lucide-react";
 
 export const Route = createFileRoute("/vender")({
   head: () => ({
