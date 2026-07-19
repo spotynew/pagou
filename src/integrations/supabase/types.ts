@@ -772,33 +772,54 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address_number: string | null
           avatar_url: string | null
+          city: string | null
+          complement: string | null
           cpf: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          neighborhood: string | null
           phone: string | null
+          postal_code: string | null
+          state: string | null
+          street: string | null
           updated_at: string
         }
         Insert: {
+          address_number?: string | null
           avatar_url?: string | null
+          city?: string | null
+          complement?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          neighborhood?: string | null
           phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          street?: string | null
           updated_at?: string
         }
         Update: {
+          address_number?: string | null
           avatar_url?: string | null
+          city?: string | null
+          complement?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          neighborhood?: string | null
           phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          street?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1148,6 +1169,14 @@ export type Database = {
           sector: string
           ticket_id: string
         }[]
+      }
+      request_seller_account: {
+        Args: { _bio?: string | null; _display_name: string; _document: string; _legal_name: string }
+        Returns: Database["public"]["Tables"]["seller_accounts"]["Row"]
+      }
+      review_seller_account: {
+        Args: { _approve: boolean; _seller_id: string }
+        Returns: undefined
       }
     }
     Enums: {
