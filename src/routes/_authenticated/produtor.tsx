@@ -3,7 +3,7 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { LayoutDashboard, Ticket, GraduationCap, Users, Tag, Settings, BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/produtor")({
-  head: () => ({ meta: [{ title: "Painel do produtor — PAGOU" }] }),
+  head: () => ({ meta: [{ title: "Painel do produtor — PAGOU" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: ProducerLayout,
 });
 

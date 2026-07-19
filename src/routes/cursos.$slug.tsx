@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { courseBySlugQuery } from "@/lib/queries";
 import { SiteShell } from "@/components/site/SiteShell";
+import { DemoNotice } from "@/components/site/DemoNotice";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/format";
 import { Clock, User, PlayCircle, ShieldCheck } from "lucide-react";
@@ -15,6 +16,23 @@ export const Route = createFileRoute("/cursos/$slug")({
   loader: async ({ context, params }) => {
     const data = await context.queryClient.ensureQueryData(courseBySlugQuery(params.slug));
     if (!data) throw notFound();
+    return { title: data.course.title, description: data.course.description ?? "" };
+  },
+  head: ({ loaderData, params }) => {
+    const title = loaderData?.title ?? "Curso";
+    const desc = (loaderData?.description || "Curso disponível na PAGOU.").slice(0, 155);
+    const url = `https://pagou.lovable.app/cursos/${params.slug}`;
+    return {
+      meta: [
+        { title: `${title} — PAGOU` },
+        { name: "description", content: desc },
+        { property: "og:title", content: `${title} — PAGOU` },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
   },
   component: CourseDetail,
   notFoundComponent: () => (
@@ -88,7 +106,8 @@ function CourseDetail() {
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-[1.4fr_1fr]">
           <div>
             <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">{course.category}</span>
-            <h1 className="mt-4 font-display text-4xl font-bold md:text-5xl">{course.title}</h1>
+            <div className="mt-3"><DemoNotice /></div>
+            <h1 className="mt-3 font-display text-4xl font-bold md:text-5xl">{course.title}</h1>
             <p className="mt-4 max-w-2xl text-ink-foreground/80">{course.description}</p>
             <div className="mt-6 flex flex-wrap gap-4 text-sm text-ink-foreground/70">
               <span className="inline-flex items-center gap-2"><User className="h-4 w-4 text-primary" />{course.instructor_name}</span>

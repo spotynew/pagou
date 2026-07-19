@@ -10,8 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShieldCheck, Zap, TicketCheck, Search, ArrowRight, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { DemoNotice } from "@/components/site/DemoNotice";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [{ property: "og:url", content: "https://pagou.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://pagou.lovable.app/" }],
+  }),
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(featuredEventsQuery),
@@ -46,9 +51,10 @@ function Home() {
               Comprou. <span className="text-primary">Pagou.</span> Aproveitou.
             </h1>
             <p className="mt-6 max-w-xl text-base text-ink-foreground/70 md:text-lg">
-              Ingressos para shows, cursos e produtos digitais em um só lugar — com o pagamento tratado
-              como fintech: rápido, transparente e sem sustos.
+              Ingressos para shows, cursos e produtos digitais em um só lugar. Compra rápida,
+              pagamento seguro e acesso digital.
             </p>
+            <div className="mt-6"><DemoNotice /></div>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" className="rounded-full text-base">
                 <Link to="/eventos">Explorar eventos <ArrowRight className="ml-1 h-4 w-4" /></Link>
@@ -82,11 +88,12 @@ function Home() {
         <div className="relative mx-auto -mb-10 max-w-5xl px-4 pb-6">
           <div className="grid gap-3 rounded-2xl border border-border bg-card p-4 shadow-elevated md:grid-cols-[1.6fr_1fr_1fr_auto]">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Busque por show, curso ou artista" className="h-12 pl-9" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <label htmlFor="home-search" className="sr-only">Buscar por show, curso ou artista</label>
+              <Input id="home-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Busque por show, curso ou artista" className="h-12 pl-9" />
             </div>
             <Select value={city} onValueChange={setCity}>
-              <SelectTrigger className="h-12"><SelectValue placeholder="Cidade" /></SelectTrigger>
+              <SelectTrigger className="h-12" aria-label="Cidade"><SelectValue placeholder="Cidade" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as cidades</SelectItem>
                 <SelectItem value="sp">São Paulo</SelectItem>
@@ -96,7 +103,7 @@ function Home() {
               </SelectContent>
             </Select>
             <Select defaultValue="all">
-              <SelectTrigger className="h-12"><SelectValue placeholder="Categoria" /></SelectTrigger>
+              <SelectTrigger className="h-12" aria-label="Categoria"><SelectValue placeholder="Categoria" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="musica">Música</SelectItem>
