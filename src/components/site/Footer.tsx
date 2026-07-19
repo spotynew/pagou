@@ -1,12 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Logo } from "./Logo";
-import { useQuery } from "@tanstack/react-query";
-import { appSettingsQuery, hasAnyContact, CONTACTS_PENDING_MESSAGE } from "@/lib/app-settings";
+import { COMPANY } from "@/lib/company";
 
 export function Footer() {
-  const { data: settings } = useQuery(appSettingsQuery());
-  const hasContacts = hasAnyContact(settings);
-
   return (
     <footer className="border-t border-border/60 bg-ink text-ink-foreground">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-4">
@@ -17,21 +13,30 @@ export function Footer() {
           </p>
           <div className="mt-6 text-xs text-ink-foreground/60">
             <h4 className="mb-2 font-semibold uppercase tracking-widest">Fale conosco</h4>
-            {hasContacts ? (
-              <ul className="space-y-1">
-                {settings?.support_email && (
-                  <li>Suporte: <a className="hover:text-primary" href={`mailto:${settings.support_email}`}>{settings.support_email}</a></li>
-                )}
-                {settings?.privacy_email && (
-                  <li>Privacidade: <a className="hover:text-primary" href={`mailto:${settings.privacy_email}`}>{settings.privacy_email}</a></li>
-                )}
-                {settings?.whatsapp_support && (
-                  <li>WhatsApp: {settings.whatsapp_support}</li>
-                )}
-              </ul>
-            ) : (
-              <p>{CONTACTS_PENDING_MESSAGE}</p>
-            )}
+            <ul className="space-y-1">
+              <li>
+                E-mail:{" "}
+                <a className="hover:text-primary" href={`mailto:${COMPANY.email}`}>
+                  {COMPANY.email}
+                </a>
+              </li>
+              <li>
+                WhatsApp:{" "}
+                <a
+                  className="hover:text-primary"
+                  href={COMPANY.whatsappHref}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {COMPANY.whatsappDisplay}
+                </a>
+              </li>
+            </ul>
+            <p className="mt-4 leading-relaxed">
+              {COMPANY.legalName}
+              <br />
+              CNPJ {COMPANY.cnpj}
+            </p>
           </div>
         </div>
         <FooterCol title="Plataforma">
@@ -51,8 +56,10 @@ export function Footer() {
       </div>
       <div className="border-t border-ink-foreground/10">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-2 px-4 py-6 text-xs text-ink-foreground/60 md:flex-row">
-          <span>© 2026 PAGOU · plataforma em fase de lançamento</span>
-          <span>Todos os direitos reservados.</span>
+          <span>© 2026 PAGOU. Todos os direitos reservados.</span>
+          <span>
+            {COMPANY.legalName} · CNPJ {COMPANY.cnpj}
+          </span>
         </div>
       </div>
     </footer>
