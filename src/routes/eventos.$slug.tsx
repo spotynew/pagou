@@ -6,6 +6,7 @@ import { createDraftOrder } from "@/lib/checkout.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { eventBySlugQuery } from "@/lib/queries";
 import { SiteShell } from "@/components/site/SiteShell";
+import { DemoNotice } from "@/components/site/DemoNotice";
 import { Button } from "@/components/ui/button";
 import { formatBRL, formatDateTimeBR } from "@/lib/format";
 import { CalendarDays, MapPin, ShieldCheck, Minus, Plus, Tag } from "lucide-react";
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/eventos/$slug")({
   loader: async ({ context, params }) => {
     const data = await context.queryClient.ensureQueryData(eventBySlugQuery(params.slug));
     if (!data) throw notFound();
+    return { title: data.event.title, description: data.event.description ?? "" };
   },
   validateSearch: (s: Record<string, unknown>) =>
     z
@@ -25,12 +27,22 @@ export const Route = createFileRoute("/eventos/$slug")({
         buyNow: z.coerce.boolean().optional(),
       })
       .parse(s),
-  head: ({ loaderData, params }) => ({
-    meta: [
-      { title: `${params.slug.replace(/-/g, " ")} — PAGOU` },
-      { name: "description", content: "Garanta seu ingresso com pagamento seguro pela PAGOU." },
-    ],
-  }),
+  head: ({ loaderData, params }) => {
+    const title = loaderData?.title ?? "Evento";
+    const desc = (loaderData?.description || "Garanta seu ingresso com pagamento seguro pela PAGOU.").slice(0, 155);
+    const url = `https://pagou.lovable.app/eventos/${params.slug}`;
+    return {
+      meta: [
+        { title: `${title} — PAGOU` },
+        { name: "description", content: desc },
+        { property: "og:title", content: `${title} — PAGOU` },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: EventDetail,
   notFoundComponent: () => (
     <SiteShell>
@@ -138,7 +150,8 @@ function EventDetail() {
                 {event.category}
               </span>
             )}
-            <h1 className="mt-4 font-display text-3xl font-bold md:text-5xl">{event.title}</h1>
+            <div className="mb-3"><DemoNotice /></div>
+            <h1 className="mt-1 font-display text-3xl font-bold md:text-5xl">{event.title}</h1>
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" />{formatDateTimeBR(event.starts_at)}</span>
               <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{event.venue}, {event.city}</span>
@@ -207,9 +220,9 @@ function EventDetail() {
               <div className="mt-6 flex items-center justify-between rounded-xl border border-border p-3">
                 <span className="text-sm font-medium">Quantidade</span>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-8 w-8 place-items-center rounded-full border border-border hover:bg-secondary"><Minus className="h-4 w-4" /></button>
+                  <button type="button" aria-label="Diminuir quantidade" onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-8 w-8 place-items-center rounded-full border border-border hover:bg-secondary"><Minus className="h-4 w-4" aria-hidden /></button>
                   <span className="w-6 text-center font-semibold">{qty}</span>
-                  <button onClick={() => setQty((q) => Math.min(10, q + 1))} className="grid h-8 w-8 place-items-center rounded-full border border-border hover:bg-secondary"><Plus className="h-4 w-4" /></button>
+                  <button type="button" aria-label="Aumentar quantidade" onClick={() => setQty((q) => Math.min(10, q + 1))} className="grid h-8 w-8 place-items-center rounded-full border border-border hover:bg-secondary"><Plus className="h-4 w-4" /></button>
                 </div>
               </div>
 
