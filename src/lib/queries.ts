@@ -62,11 +62,8 @@ export function courseBySlugQuery(slug: string) {
       if (error) throw error;
       if (!course) return null;
       const { data: modules } = await supabase
-        .from("course_modules")
-        .select("id, title, sort_order, course_lessons(id, title, duration_minutes, sort_order)")
-        .eq("course_id", course.id)
-        .order("sort_order");
-      return { course, modules: modules ?? [] };
+        .rpc("get_course_outline", { _course_id: course.id });
+      return { course, modules: (modules as any[]) ?? [] };
     },
   });
 }
