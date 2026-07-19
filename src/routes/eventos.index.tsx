@@ -16,6 +16,10 @@ export const Route = createFileRoute("/eventos/")({
       { name: "description", content: "Descubra shows, festivais e experiências no Brasil todo. Compre com PIX e receba seu ingresso na hora." },
       { property: "og:title", content: "Eventos e shows — PAGOU" },
       { property: "og:description", content: "Descubra shows, festivais e experiências no Brasil todo." },
+      { property: "og:url", content: "https://pagou.lovable.app/eventos" },
+    ],
+    links: [{ rel: "canonical", href: "https://pagou.lovable.app/eventos" }],
+    _extra: [
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(featuredEventsQuery),
