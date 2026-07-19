@@ -17,20 +17,20 @@ export type MercadoPagoPayment = {
 };
 
 function accessToken() {
-  const token = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+  const token = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
   if (!token) throw new Error("MERCADO_PAGO_ACCESS_TOKEN não configurado");
   return token;
 }
 
 async function mercadoPagoRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  headers.set("Accept", "application/json");
+  headers.set("Authorization", `Bearer ${accessToken()}`);
+  if (init?.body) headers.set("Content-Type", "application/json");
+
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers: {
-      accept: "application/json",
-      authorization: `Bearer ${accessToken()}`,
-      ...(init?.body ? { "content-type": "application/json" } : {}),
-      ...init?.headers,
-    },
+    headers,
   });
 
   const payload = (await response.json().catch(() => null)) as
