@@ -16,28 +16,6 @@ export type MercadoPagoPayment = {
   } | null;
 };
 
-type MercadoPagoOrder = {
-  id: string;
-  status: string;
-  status_detail?: string | null;
-  external_reference?: string | null;
-  total_amount: string;
-  created_date?: string | null;
-  transactions?: {
-    payments?: Array<{
-      id?: string | null;
-      status?: string | null;
-      status_detail?: string | null;
-      payment_method?: {
-        id?: string | null;
-        qr_code?: string | null;
-        qr_code_base64?: string | null;
-        ticket_url?: string | null;
-      } | null;
-    }>;
-  } | null;
-};
-
 function accessToken() {
   const token = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
   if (!token) throw new Error("MERCADO_PAGO_ACCESS_TOKEN não configurado");
@@ -56,9 +34,18 @@ async function mercadoPagoRequest<T>(path: string, init?: RequestInit): Promise<
   });
 
   const payload = (await response.json().catch(() => null)) as
-    (T & { message?: string; error?: string }) | null;
+    | (T & {
+        message?: string;
+        error?: string;
+        cause?: Array<{ description?: string; code?: string | number }>;
+      })
+    | null;
   if (!response.ok || !payload) {
-    const detail = payload?.message ?? payload?.error ?? `HTTP ${response.status}`;
+    const cause = payload?.cause
+      ?.map((item) => item.description)
+      .filter(Boolean)
+      .join("; ");
+    const detail = cause || payload?.message || payload?.error || `HTTP ${response.status}`;
     throw new Error(`Mercado Pago: ${detail}`);
   }
   return payload;
@@ -91,34 +78,14 @@ export async function createPixPayment(input: {
         last_name: realNameParts.slice(1).join(" ") || "PAGOU",
       };
   const cpf = input.payerCpf?.replace(/\D/g, "");
-  if (cpf?.length === 11) payer.identification = { type: "CPF", number: cpf };
-
-  if (isSandbox) {
-    const order = await mercadoPagoRequest<MercadoPagoOrder>("/v1/orders", {
-      method: "POST",
-      headers: { "X-Idempotency-Key": `pagou-${input.orderId}-orders-pix-v1` },
-      body: JSON.stringify({
-        type: "online",
-        processing_mode: "automatic",
-        external_reference: input.orderId,
-        total_amount: (input.amountCents / 100).toFixed(2),
-        payer,
-        transactions: {
-          payments: [
-            {
-              amount: (input.amountCents / 100).toFixed(2),
-              payment_method: { id: "pix", type: "bank_transfer" },
-            },
-          ],
-        },
-      }),
-    });
-    return normalizeMercadoPagoOrder(order);
+  // Nunca misture a identidade fictícia do sandbox com CPF real do comprador.
+  if (!isSandbox && cpf?.length === 11) {
+    payer.identification = { type: "CPF", number: cpf };
   }
 
   return mercadoPagoRequest<MercadoPagoPayment>("/v1/payments", {
     method: "POST",
-    headers: { "X-Idempotency-Key": `pagou-${input.orderId}-pix-v2` },
+    headers: { "X-Idempotency-Key": `pagou-${input.orderId}-pix-v3` },
     body: JSON.stringify({
       transaction_amount: input.amountCents / 100,
       description: input.description.slice(0, 250),
@@ -130,30 +97,9 @@ export async function createPixPayment(input: {
   });
 }
 
-function normalizeMercadoPagoOrder(order: MercadoPagoOrder): MercadoPagoPayment {
-  const transaction = order.transactions?.payments?.[0];
-  return {
-    id: order.id,
-    status: transaction?.status ?? order.status,
-    status_detail: transaction?.status_detail ?? order.status_detail,
-    external_reference: order.external_reference,
-    transaction_amount: Number(order.total_amount),
-    payment_method_id: transaction?.payment_method?.id ?? "pix",
-    transaction_data: {
-      qr_code: transaction?.payment_method?.qr_code ?? null,
-      qr_code_base64: transaction?.payment_method?.qr_code_base64 ?? null,
-      ticket_url: transaction?.payment_method?.ticket_url ?? null,
-    },
-  };
-}
-
-export async function getMercadoPagoPayment(providerId: string) {
-  if (/^ORD[A-Z0-9]+$/i.test(providerId)) {
-    const order = await mercadoPagoRequest<MercadoPagoOrder>(`/v1/orders/${providerId}`);
-    return normalizeMercadoPagoOrder(order);
-  }
-  if (!/^\d+$/.test(providerId)) throw new Error("ID de pagamento inválido");
-  return mercadoPagoRequest<MercadoPagoPayment>(`/v1/payments/${providerId}`);
+export function getMercadoPagoPayment(paymentId: string) {
+  if (!/^\d+$/.test(paymentId)) throw new Error("ID de pagamento inválido");
+  return mercadoPagoRequest<MercadoPagoPayment>(`/v1/payments/${paymentId}`);
 }
 
 function hexToBytes(value: string) {
@@ -199,8 +145,8 @@ export async function validateMercadoPagoSignature(input: {
 }
 
 export function mapMercadoPagoStatus(status: string) {
-  if (["approved", "processed"].includes(status)) return "approved" as const;
+  if (status === "approved") return "approved" as const;
   if (status === "refunded" || status === "charged_back") return "refunded" as const;
-  if (["rejected", "cancelled", "canceled", "failed"].includes(status)) return "rejected" as const;
+  if (["rejected", "cancelled"].includes(status)) return "rejected" as const;
   return "pending" as const;
 }
