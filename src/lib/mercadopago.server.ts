@@ -51,13 +51,24 @@ export async function createPixPayment(input: {
   payerCpf?: string | null;
   expiresAt: string;
 }) {
-  const nameParts = input.payerName?.trim().split(/\s+/).filter(Boolean) ?? [];
   const notificationUrl = process.env.MERCADO_PAGO_NOTIFICATION_URL;
-  const payer: Record<string, unknown> = {
-    email: input.payerEmail,
-    first_name: nameParts[0] || "Cliente",
-    last_name: nameParts.slice(1).join(" ") || "PAGOU",
-  };
+  // Sandbox detection is server-side only, based on the configured token prefix.
+  // Test tokens start with "TEST-"; production tokens with "APP_USR-".
+  const isSandbox = accessToken().startsWith("TEST-");
+
+  const realNameParts = input.payerName?.trim().split(/\s+/).filter(Boolean) ?? [];
+  const payer: Record<string, unknown> = isSandbox
+    ? {
+        // Fixed sandbox payer required by Mercado Pago to approve test PIX.
+        email: "test_user_br@testuser.com",
+        first_name: "APRO",
+        last_name: "PAGOU",
+      }
+    : {
+        email: input.payerEmail,
+        first_name: realNameParts[0] || "Cliente",
+        last_name: realNameParts.slice(1).join(" ") || "PAGOU",
+      };
   const cpf = input.payerCpf?.replace(/\D/g, "");
   if (cpf?.length === 11) payer.identification = { type: "CPF", number: cpf };
 
