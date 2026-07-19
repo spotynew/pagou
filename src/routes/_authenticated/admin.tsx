@@ -15,6 +15,18 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RoleGate } from "@/components/auth/RoleGate";
 import { supabase } from "@/integrations/supabase/client";
+import { listAdminUsers, manageAdminUser } from "@/lib/admin-users.functions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -49,6 +61,7 @@ function AdminPanel() {
         <Tabs defaultValue="vendedores">
           <TabsList>
             <TabsTrigger value="vendedores">Vendedores</TabsTrigger>
+            <TabsTrigger value="usuarios">Usuários</TabsTrigger>
             <TabsTrigger value="produtos">Produtos</TabsTrigger>
             <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
             <TabsTrigger value="reembolsos">Reembolsos</TabsTrigger>
@@ -58,6 +71,10 @@ function AdminPanel() {
 
           <TabsContent value="vendedores" className="mt-6">
             <SellerApplications />
+          </TabsContent>
+
+          <TabsContent value="usuarios" className="mt-6">
+            <AdminUsers />
           </TabsContent>
 
           <TabsContent value="produtos" className="mt-6">
@@ -101,6 +118,129 @@ function AdminPanel() {
         </Tabs>
       </div>
     </SiteShell>
+  );
+}
+
+function AdminUsers() {
+  const queryClient = useQueryClient();
+  const listUsers = useServerFn(listAdminUsers);
+  const manageUser = useServerFn(manageAdminUser);
+  const [search, setSearch] = useState("");
+  const users = useQuery({ queryKey: ["admin-users"], queryFn: () => listUsers() });
+  const action = useMutation({
+    mutationFn: (input: { userId: string; action: "ban" | "unban" | "delete" }) =>
+      manageUser({ data: input }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success("Usuário atualizado");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const filtered = (users.data ?? []).filter((user) =>
+    `${user.fullName} ${user.email} ${user.phone}`.toLowerCase().includes(search.toLowerCase()),
+  );
+  return (
+    <div className="space-y-4">
+      <div className="max-w-md">
+        <Label htmlFor="user-search">Buscar usuário</Label>
+        <Input
+          id="user-search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Nome, e-mail ou telefone"
+        />
+      </div>
+      {users.isPending ? (
+        <p className="text-sm text-muted-foreground">Carregando usuários…</p>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+          <table className="w-full min-w-[860px] text-sm">
+            <thead className="bg-secondary/60 text-left text-xs uppercase tracking-widest text-muted-foreground">
+              <tr>
+                <th className="p-4">Pessoa</th>
+                <th className="p-4">Contato</th>
+                <th className="p-4">Permissões</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((user) => {
+                const banned = Boolean(user.bannedUntil && new Date(user.bannedUntil) > new Date());
+                const protectedAdmin = user.roles.includes("admin");
+                return (
+                  <tr key={user.id} className="border-t border-border">
+                    <td className="p-4">
+                      <p className="font-medium">{user.fullName || "Sem nome"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Desde {new Date(user.createdAt).toLocaleDateString("pt-BR")}
+                      </p>
+                    </td>
+                    <td className="p-4">
+                      <p>{user.email}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.phone || "Sem telefone"}
+                      </p>
+                    </td>
+                    <td className="p-4">{user.roles.join(", ") || "buyer"}</td>
+                    <td className="p-4">
+                      <Badge variant={banned ? "destructive" : "secondary"}>
+                        {banned ? "Bloqueado" : "Ativo"}
+                      </Badge>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={action.isPending || protectedAdmin}
+                          onClick={() =>
+                            action.mutate({ userId: user.id, action: banned ? "unban" : "ban" })
+                          }
+                        >
+                          {banned ? "Desbloquear" : "Bloquear"}
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={action.isPending || protectedAdmin}
+                            >
+                              Excluir
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Excluir {user.fullName || user.email}?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta ação é permanente e remove a conta e os dados vinculados. Para
+                                impedir o acesso sem apagar o histórico, prefira bloquear.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-destructive text-destructive-foreground"
+                                onClick={() => action.mutate({ userId: user.id, action: "delete" })}
+                              >
+                                Excluir permanentemente
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
 
