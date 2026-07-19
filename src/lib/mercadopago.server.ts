@@ -63,12 +63,18 @@ export async function createPixPayment(input: {
   // Sandbox detection is server-side only, based on the configured token prefix.
   // Test tokens start with "TEST-"; production tokens with "APP_USR-".
   const isSandbox = accessToken().startsWith("TEST-");
+  const testPayerEmail = process.env.MERCADO_PAGO_TEST_PAYER_EMAIL?.trim().toLowerCase();
+  if (isSandbox && (!testPayerEmail || !/^test[a-z0-9._-]*@testuser\.com$/i.test(testPayerEmail))) {
+    throw new Error(
+      "Configure MERCADO_PAGO_TEST_PAYER_EMAIL com o e-mail de uma conta de teste Comprador diferente do vendedor",
+    );
+  }
 
   const realNameParts = input.payerName?.trim().split(/\s+/).filter(Boolean) ?? [];
   const payer: Record<string, unknown> = isSandbox
     ? {
-        // A API Payments exige formato test_payer_* e identificação fictícia no sandbox.
-        email: "test_payer_123456789@testuser.com",
+        // Conta compradora real criada no painel/API de testes do Mercado Pago.
+        email: testPayerEmail,
         first_name: "Test",
         last_name: "User",
         identification: { type: "CPF", number: "19119119100" },
@@ -86,7 +92,7 @@ export async function createPixPayment(input: {
 
   return mercadoPagoRequest<MercadoPagoPayment>("/v1/payments", {
     method: "POST",
-    headers: { "X-Idempotency-Key": `pagou-${input.orderId}-pix-v4` },
+    headers: { "X-Idempotency-Key": `pagou-${input.orderId}-pix-v5` },
     body: JSON.stringify({
       transaction_amount: input.amountCents / 100,
       description: input.description.slice(0, 250),
