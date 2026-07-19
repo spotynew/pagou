@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { DemoNotice } from "@/components/site/DemoNotice";
 
 export const Route = createFileRoute("/eventos/")({
   head: () => ({
@@ -19,8 +20,6 @@ export const Route = createFileRoute("/eventos/")({
       { property: "og:url", content: "https://pagou.lovable.app/eventos" },
     ],
     links: [{ rel: "canonical", href: "https://pagou.lovable.app/eventos" }],
-    _extra: [
-    ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(featuredEventsQuery),
   component: EventsList,
@@ -45,13 +44,15 @@ function EventsList() {
     <SiteShell>
       <PageHeader eyebrow="Catálogo" title="Todos os eventos" subtitle="Filtre por cidade, data ou categoria e ache o próximo rolê." />
       <div className="mx-auto max-w-7xl px-4 py-10">
+        <div className="mb-4"><DemoNotice /></div>
         <div className="grid gap-3 rounded-2xl border border-border bg-card p-4 shadow-card md:grid-cols-[1.6fr_1fr_1fr]">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por nome" className="h-11 pl-9" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <label htmlFor="eventos-busca" className="sr-only">Buscar eventos por nome</label>
+            <Input id="eventos-busca" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por nome" className="h-11 pl-9" />
           </div>
           <Select value={city} onValueChange={setCity}>
-            <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11" aria-label="Filtrar por cidade"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as cidades</SelectItem>
               <SelectItem value="são paulo">São Paulo</SelectItem>
@@ -61,7 +62,7 @@ function EventsList() {
             </SelectContent>
           </Select>
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11" aria-label="Filtrar por categoria"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as categorias</SelectItem>
               <SelectItem value="música">Música</SelectItem>
