@@ -37,7 +37,7 @@ export function SellerApplicationForm() {
         _display_name: displayName,
         _legal_name: legalName,
         _document: document,
-        _bio: bio || null,
+        _bio: bio || undefined,
       });
       if (error) throw error;
     },
