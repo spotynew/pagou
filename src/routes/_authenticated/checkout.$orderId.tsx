@@ -9,6 +9,7 @@ import { formatBRL, formatTimeBR } from "@/lib/format";
 import { ShieldCheck, QrCode, Loader2, Copy } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
 import { confirmDraftOrder, getDraftOrder } from "@/lib/checkout.functions";
 import { createMercadoPagoPayment, simulateApproveDemo } from "@/lib/payments.functions";
 
@@ -186,6 +187,12 @@ function CheckoutPage() {
                     <p className="text-sm text-muted-foreground">
                       Copie o código PIX abaixo e pague no app do seu banco. Válido até{" "}
                       {payment.expires_at ? formatTimeBR(payment.expires_at) : "30 minutos"}.
+                    </p>
+                    <div className="flex justify-center rounded-2xl bg-white p-4">
+                      <QRCodeSVG value={payment.pix_qr_code} size={208} />
+                    </div>
+                    <p className="text-center text-xs font-medium text-muted-foreground">
+                      Escaneie o QR Code no aplicativo do seu banco
                     </p>
                     <div className="flex items-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3">
                       <code className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-xs">

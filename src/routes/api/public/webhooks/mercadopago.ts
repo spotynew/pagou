@@ -34,8 +34,7 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
             url.searchParams.get("data.id") ?? url.searchParams.get("id") ?? body.data?.id ?? "",
           );
           const topic = url.searchParams.get("type") ?? body.type ?? "";
-          if (topic && !["payment", "order"].includes(topic))
-            return json({ received: true, ignored: true });
+          if (topic && topic !== "payment") return json({ received: true, ignored: true });
           if (!dataId) return json({ error: "missing_payment_id" }, 400);
 
           const signature = request.headers.get("x-signature") ?? "";
