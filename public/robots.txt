@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /admin
+Disallow: /produtor
+Disallow: /checkin
+Disallow: /minhas-compras
+Disallow: /checkout
+
+Sitemap: https://pagou.lovable.app/sitemap.xml
