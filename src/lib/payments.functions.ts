@@ -70,7 +70,7 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
       method: "pix" as const,
       provider_payment_id: String(mp.id),
       provider_ref: String(mp.id),
-      status: mp.status === "approved" ? "approved" : "pending",
+      status: (mp.status === "approved" ? "approved" : "pending") as "approved" | "pending",
       amount_cents: order.total_cents,
       pix_qr_code: mp.transaction_data?.qr_code ?? null,
       pix_qr_code_base64: mp.transaction_data?.qr_code_base64 ?? null,
