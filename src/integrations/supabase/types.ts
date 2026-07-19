@@ -1118,6 +1118,18 @@ export type Database = {
         Returns: string
       }
       expire_stale_reservations: { Args: never; Returns: undefined }
+      get_course_outline: { Args: { _course_id: string }; Returns: Json }
+      get_lesson_video: { Args: { _lesson_id: string }; Returns: string }
+      get_public_seller: {
+        Args: { _seller_id: string }
+        Returns: {
+          avatar_url: string
+          bio: string
+          display_name: string
+          id: string
+          status: Database["public"]["Enums"]["seller_status"]
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
