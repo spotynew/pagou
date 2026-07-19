@@ -72,18 +72,22 @@ BEGIN
     RAISE EXCEPTION 'Não autenticado';
   END IF;
 
-  SELECT t, e.title
-    INTO _ticket, _event_title
-  FROM public.tickets t
-  JOIN public.events e ON e.id = t.event_id
-  WHERE upper(t.code) = upper(trim(_code))
-  FOR UPDATE OF t;
+  SELECT *
+    INTO _ticket
+  FROM public.tickets
+  WHERE upper(code) = upper(trim(_code))
+  FOR UPDATE;
 
   IF NOT FOUND THEN
     RETURN QUERY SELECT 'invalid'::text, NULL::uuid, NULL::uuid, NULL::text,
       NULL::text, NULL::text, NULL::timestamptz;
     RETURN;
   END IF;
+
+  SELECT title
+    INTO _event_title
+  FROM public.events
+  WHERE id = _ticket.event_id;
 
   IF NOT public.has_role(auth.uid(), 'admin') THEN
     IF NOT public.has_role(auth.uid(), 'checkin_staff') OR NOT EXISTS (
