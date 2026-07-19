@@ -67,10 +67,11 @@ export async function createPixPayment(input: {
   const realNameParts = input.payerName?.trim().split(/\s+/).filter(Boolean) ?? [];
   const payer: Record<string, unknown> = isSandbox
     ? {
-        // Fixed sandbox payer required by Mercado Pago to approve test PIX.
-        email: "test_user_br@testuser.com",
-        first_name: "APRO",
-        last_name: "PAGOU",
+        // A API Payments exige formato test_payer_* e identificação fictícia no sandbox.
+        email: "test_payer_123456789@testuser.com",
+        first_name: "Test",
+        last_name: "User",
+        identification: { type: "CPF", number: "19119119100" },
       }
     : {
         email: input.payerEmail,
@@ -85,7 +86,7 @@ export async function createPixPayment(input: {
 
   return mercadoPagoRequest<MercadoPagoPayment>("/v1/payments", {
     method: "POST",
-    headers: { "X-Idempotency-Key": `pagou-${input.orderId}-pix-v3` },
+    headers: { "X-Idempotency-Key": `pagou-${input.orderId}-pix-v4` },
     body: JSON.stringify({
       transaction_amount: input.amountCents / 100,
       description: input.description.slice(0, 250),
