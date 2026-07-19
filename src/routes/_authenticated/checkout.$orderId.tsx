@@ -3,18 +3,25 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { SiteShell } from "@/components/site/SiteShell";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { formatBRL, formatTimeBR } from "@/lib/format";
-import { ShieldCheck, QrCode, CreditCard, Loader2, Copy } from "lucide-react";
+import { ShieldCheck, QrCode, Loader2, Copy } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  confirmDraftOrder,
-  getDraftOrder,
-} from "@/lib/checkout.functions";
+import { confirmDraftOrder, getDraftOrder } from "@/lib/checkout.functions";
 import { createMercadoPagoPayment, simulateApproveDemo } from "@/lib/payments.functions";
+
+type CheckoutItem = {
+  id: string;
+  title: string;
+  quantity: number;
+  total_cents: number;
+};
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export const Route = createFileRoute("/_authenticated/checkout/$orderId")({
   head: () => ({ meta: [{ title: "Checkout — PAGOU" }] }),
@@ -25,8 +32,8 @@ function CheckoutPage() {
   const { orderId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [method, setMethod] = useState<"pix" | "card">("pix");
   const [accepted, setAccepted] = useState(false);
+  const method = "pix" as const;
 
   const fetchOrder = useServerFn(getDraftOrder);
   const confirmFn = useServerFn(confirmDraftOrder);
@@ -48,7 +55,7 @@ function CheckoutPage() {
       qc.invalidateQueries({ queryKey: ["draft-order", orderId] });
       toast.success("Cobrança gerada");
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao processar"),
+    onError: (error: unknown) => toast.error(errorMessage(error, "Falha ao processar")),
   });
 
   const approve = useMutation({
@@ -58,7 +65,7 @@ function CheckoutPage() {
       toast.success("Pagamento aprovado (demo)");
       setTimeout(() => navigate({ to: "/minhas-compras" }), 800);
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao aprovar"),
+    onError: (error: unknown) => toast.error(errorMessage(error, "Falha ao aprovar")),
   });
 
   if (orderQuery.isPending) {
@@ -75,23 +82,31 @@ function CheckoutPage() {
       <SiteShell>
         <div className="mx-auto max-w-3xl px-4 py-24 text-center">
           <h1 className="font-display text-3xl font-bold">Pedido indisponível</h1>
-          <p className="mt-2 text-muted-foreground">{(orderQuery.error as any)?.message ?? "Tente iniciar uma nova compra."}</p>
-          <Button asChild className="mt-6"><Link to="/eventos">Voltar aos eventos</Link></Button>
+          <p className="mt-2 text-muted-foreground">
+            {errorMessage(orderQuery.error, "Tente iniciar uma nova compra.")}
+          </p>
+          <Button asChild className="mt-6">
+            <Link to="/eventos">Voltar aos eventos</Link>
+          </Button>
         </div>
       </SiteShell>
     );
   }
 
   const { order, payment } = orderQuery.data;
-  const isPaid = order.status === "paid" || payment?.status === "approved";
-  const isExpired =
-    !isPaid && order.expires_at && new Date(order.expires_at) < new Date();
+  // O pedido só é concluído após o fulfillment confirmar estoque e emissão.
+  const isPaid = order.status === "paid";
+  const isDemoPayment = payment?.provider_payment_id?.startsWith("demo-") ?? false;
+  const isExpired = !isPaid && order.expires_at && new Date(order.expires_at) < new Date();
 
   return (
     <SiteShell>
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="mb-8 flex items-center gap-2 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Início</Link> <span>/</span>
+          <Link to="/" className="hover:text-foreground">
+            Início
+          </Link>{" "}
+          <span>/</span>
           <span className="text-foreground">Checkout</span>
         </div>
 
@@ -100,7 +115,7 @@ function CheckoutPage() {
             <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
               <h2 className="font-display text-lg font-semibold">Itens do pedido</h2>
               <ul className="mt-4 divide-y divide-border">
-                {order.order_items.map((it: any) => (
+                {(order.order_items as CheckoutItem[]).map((it) => (
                   <li key={it.id} className="flex items-center justify-between py-3">
                     <div>
                       <p className="font-medium">{it.title}</p>
@@ -111,23 +126,44 @@ function CheckoutPage() {
                 ))}
               </ul>
               <p className="mt-4 text-xs text-muted-foreground">
-                Todos os valores são calculados no backend a partir do produto e do lote. Nada do que
-                aparece aqui é editável pelo navegador.
+                Todos os valores são calculados no backend a partir do produto e do lote. Nada do
+                que aparece aqui é editável pelo navegador.
               </p>
             </section>
 
             {!isPaid && !isExpired && !payment && (
               <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
                 <h2 className="font-display text-lg font-semibold">Forma de pagamento</h2>
-                <RadioGroup value={method} onValueChange={(v) => setMethod(v as any)} className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <PaymentOption id="pix" value="pix" icon={<QrCode className="h-5 w-5 text-primary" />} title="PIX" desc="Aprovação em segundos" />
-                  <PaymentOption id="card" value="card" icon={<CreditCard className="h-5 w-5 text-primary" />} title="Cartão de crédito" desc="Taxa de 3,99% inclusa" />
-                </RadioGroup>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="flex items-start gap-3 rounded-xl border border-primary bg-primary/5 p-4">
+                    <QrCode className="mt-0.5 h-5 w-5 text-primary" />
+                    <div>
+                      <p className="font-semibold">PIX</p>
+                      <p className="text-xs text-muted-foreground">
+                        Aprovação automática em segundos
+                      </p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
+                    Cartão de crédito será liberado após a configuração segura do Mercado Pago.
+                  </div>
+                </div>
                 <label className="mt-6 flex items-start gap-3 text-sm text-muted-foreground">
-                  <Checkbox checked={accepted} onCheckedChange={(v) => setAccepted(!!v)} className="mt-0.5" />
+                  <Checkbox
+                    checked={accepted}
+                    onCheckedChange={(v) => setAccepted(!!v)}
+                    className="mt-0.5"
+                  />
                   <span>
-                    Li e concordo com os <Link to="/termos" className="text-primary underline">termos de uso</Link> e a{" "}
-                    <Link to="/privacidade" className="text-primary underline">política de privacidade</Link>.
+                    Li e concordo com os{" "}
+                    <Link to="/termos" className="text-primary underline">
+                      termos de uso
+                    </Link>{" "}
+                    e a{" "}
+                    <Link to="/privacidade" className="text-primary underline">
+                      política de privacidade
+                    </Link>
+                    .
                   </span>
                 </label>
                 <Button
@@ -173,36 +209,47 @@ function CheckoutPage() {
                     Cobrança criada. A confirmação chegará automaticamente via webhook.
                   </p>
                 )}
-                <div className="mt-6 rounded-xl border border-border bg-secondary/50 p-4 text-xs text-muted-foreground">
-                  Modo demonstração: ainda não há credenciais reais do Mercado Pago. Use o botão abaixo
-                  para simular a aprovação e ver o fluxo completo.
-                </div>
-                <Button
-                  className="mt-3 w-full rounded-xl"
-                  variant="secondary"
-                  disabled={approve.isPending}
-                  onClick={() => approve.mutate()}
-                >
-                  {approve.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Simular aprovação (demo)
-                </Button>
+                {isDemoPayment && (
+                  <>
+                    <div className="mt-6 rounded-xl border border-border bg-secondary/50 p-4 text-xs text-muted-foreground">
+                      Modo demonstração ativo. Nenhuma cobrança real será realizada.
+                    </div>
+                    <Button
+                      className="mt-3 w-full rounded-xl"
+                      variant="secondary"
+                      disabled={approve.isPending}
+                      onClick={() => approve.mutate()}
+                    >
+                      {approve.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Simular aprovação (demo)
+                    </Button>
+                  </>
+                )}
               </section>
             )}
 
             {isPaid && (
               <section className="rounded-2xl border border-primary/40 bg-primary/5 p-6 shadow-card">
-                <h2 className="font-display text-lg font-semibold text-primary">Pagamento aprovado</h2>
+                <h2 className="font-display text-lg font-semibold text-primary">
+                  Pagamento aprovado
+                </h2>
                 <p className="mt-2 text-sm text-foreground/80">
                   Seus ingressos ou matrículas já estão disponíveis em Minhas compras.
                 </p>
-                <Button asChild className="mt-4"><Link to="/minhas-compras">Ir para minhas compras</Link></Button>
+                <Button asChild className="mt-4">
+                  <Link to="/minhas-compras">Ir para minhas compras</Link>
+                </Button>
               </section>
             )}
 
             {isExpired && (
               <section className="rounded-2xl border border-destructive/40 bg-destructive/5 p-6">
-                <h2 className="font-display text-lg font-semibold text-destructive">Pedido expirado</h2>
-                <p className="mt-2 text-sm text-muted-foreground">Inicie uma nova compra para reservar novamente.</p>
+                <h2 className="font-display text-lg font-semibold text-destructive">
+                  Pedido expirado
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Inicie uma nova compra para reservar novamente.
+                </p>
               </section>
             )}
           </div>
@@ -213,19 +260,32 @@ function CheckoutPage() {
               <Separator className="my-5" />
               <SummaryRow label="Subtotal" value={formatBRL(order.subtotal_cents)} />
               {order.discount_cents > 0 && (
-                <SummaryRow label="Desconto" value={`- ${formatBRL(order.discount_cents)}`} className="text-primary" />
+                <SummaryRow
+                  label="Desconto"
+                  value={`- ${formatBRL(order.discount_cents)}`}
+                  className="text-primary"
+                />
               )}
-              <SummaryRow label="Taxa da plataforma" value={formatBRL(order.platform_fee_cents ?? 0)} />
+              <SummaryRow
+                label="Taxa da plataforma"
+                value={formatBRL(order.platform_fee_cents ?? 0)}
+              />
               {(order.payment_fee_cents ?? 0) > 0 && (
-                <SummaryRow label="Taxa do meio de pagamento" value={formatBRL(order.payment_fee_cents ?? 0)} />
+                <SummaryRow
+                  label="Taxa do meio de pagamento"
+                  value={formatBRL(order.payment_fee_cents ?? 0)}
+                />
               )}
               <Separator className="my-5" />
               <div className="flex items-baseline justify-between">
                 <span className="font-semibold">Total</span>
-                <span className="font-display text-2xl font-bold">{formatBRL(order.total_cents)}</span>
+                <span className="font-display text-2xl font-bold">
+                  {formatBRL(order.total_cents)}
+                </span>
               </div>
               <div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
-                <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Preços recalculados pelo servidor a cada etapa.
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Preços recalculados pelo
+                servidor a cada etapa.
               </div>
             </div>
           </aside>
@@ -235,19 +295,15 @@ function CheckoutPage() {
   );
 }
 
-function PaymentOption({ id, value, icon, title, desc }: { id: string; value: string; icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <label htmlFor={id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4 transition-all hover:border-primary/60 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5">
-      <RadioGroupItem value={value} id={id} className="mt-1" />
-      <div>
-        <div className="flex items-center gap-2 font-semibold">{icon}{title}</div>
-        <p className="text-xs text-muted-foreground">{desc}</p>
-      </div>
-    </label>
-  );
-}
-
-function SummaryRow({ label, value, className }: { label: string; value: string; className?: string }) {
+function SummaryRow({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: string;
+  className?: string;
+}) {
   return (
     <div className={"flex items-center justify-between text-sm " + (className ?? "")}>
       <span className="text-muted-foreground">{label}</span>
