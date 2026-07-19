@@ -33,7 +33,7 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (existing) {
+    if (existing && (existing.status === "approved" || existing.pix_qr_code)) {
       return {
         paymentId: existing.id,
         expiresAt: existing.expires_at,
@@ -58,29 +58,30 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
       payerEmail,
       payerName: order.buyer_name || profile?.full_name,
       payerCpf: order.buyer_cpf || profile?.cpf,
-      expiresAt,
     });
 
     if (Math.round(mp.transaction_amount * 100) !== order.total_cents) {
       throw new Error("O provedor retornou um valor diferente do pedido");
     }
 
-    const { data: payment, error: paymentError } = await supabaseAdmin
-      .from("payments")
-      .insert({
-        order_id: order.id,
-        provider: "mercadopago",
-        method: "pix",
-        provider_payment_id: String(mp.id),
-        provider_ref: String(mp.id),
-        status: mp.status === "approved" ? "approved" : "pending",
-        amount_cents: order.total_cents,
-        pix_qr_code: mp.transaction_data?.qr_code ?? null,
-        pix_qr_code_base64: mp.transaction_data?.qr_code_base64 ?? null,
-        expires_at: mp.date_of_expiration ?? expiresAt,
-        paid_at: mp.date_approved ?? null,
-        raw_status: [mp.status, mp.status_detail].filter(Boolean).join(":"),
-      })
+    const paymentValues = {
+      order_id: order.id,
+      provider: "mercadopago",
+      method: "pix",
+      provider_payment_id: String(mp.id),
+      provider_ref: String(mp.id),
+      status: mp.status === "approved" ? "approved" : "pending",
+      amount_cents: order.total_cents,
+      pix_qr_code: mp.transaction_data?.qr_code ?? null,
+      pix_qr_code_base64: mp.transaction_data?.qr_code_base64 ?? null,
+      expires_at: mp.date_of_expiration ?? expiresAt,
+      paid_at: mp.date_approved ?? null,
+      raw_status: [mp.status, mp.status_detail].filter(Boolean).join(":"),
+    };
+    const paymentQuery = existing
+      ? supabaseAdmin.from("payments").update(paymentValues).eq("id", existing.id)
+      : supabaseAdmin.from("payments").insert(paymentValues);
+    const { data: payment, error: paymentError } = await paymentQuery
       .select("id, expires_at, pix_qr_code")
       .single();
     if (paymentError || !payment) {
