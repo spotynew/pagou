@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatBRL, formatDateTimeBR } from "@/lib/format";
 import { QRCodeSVG } from "qrcode.react";
-import { Download, PlayCircle, Ticket, ShieldCheck } from "lucide-react";
+import { Download, PlayCircle, Ticket, ShieldCheck } from "lucide-react";\nimport { ProfileForm } from "@/components/account/ProfileForm";
 
 export const Route = createFileRoute("/_authenticated/minhas-compras")({
   head: () => ({ meta: [{ title: "Minhas compras — PAGOU" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -94,7 +94,7 @@ function MyPurchases() {
           <TabsContent value="perfil" className="mt-6">
             <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
               <h3 className="font-display text-lg font-semibold">Dados pessoais</h3>
-              <p className="text-sm text-muted-foreground">Faça login para gerenciar seus dados. <Link to="/auth" className="text-primary hover:underline">Entrar</Link></p>
+              <p className="mb-6 text-sm text-muted-foreground">Mantenha seus dados atualizados para pagamentos e emissão de ingressos.</p>\n              <ProfileForm />
             </div>
           </TabsContent>
         </Tabs>
