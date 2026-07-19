@@ -27,7 +27,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedProdutorIndexRouteImport } from './routes/_authenticated/produtor.index'
 import { Route as AuthenticatedCheckoutOrderIdRouteImport } from './routes/_authenticated/checkout.$orderId'
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
-import { Route as ApiPublicDiagMpRouteImport } from './routes/api/public/_diag.mp'
+import { Route as ApiPublicDiagMpRouteImport } from './routes/api/public/[_]diag.mp'
 
 const VenderRoute = VenderRouteImport.update({
   id: '/vender',
@@ -124,7 +124,7 @@ const ApiPublicWebhooksMercadopagoRoute =
   } as any)
 const ApiPublicDiagMpRoute = ApiPublicDiagMpRouteImport.update({
   id: '/api/public/_diag/mp',
-  path: '/api/public/mp',
+  path: '/api/public/_diag/mp',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -145,7 +145,7 @@ export interface FileRoutesByFullPath {
   '/eventos/': typeof EventosIndexRoute
   '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
   '/produtor/': typeof AuthenticatedProdutorIndexRoute
-  '/api/public/mp': typeof ApiPublicDiagMpRoute
+  '/api/public/_diag/mp': typeof ApiPublicDiagMpRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
 export interface FileRoutesByTo {
@@ -164,7 +164,7 @@ export interface FileRoutesByTo {
   '/eventos': typeof EventosIndexRoute
   '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
   '/produtor': typeof AuthenticatedProdutorIndexRoute
-  '/api/public/mp': typeof ApiPublicDiagMpRoute
+  '/api/public/_diag/mp': typeof ApiPublicDiagMpRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
 export interface FileRoutesById {
@@ -208,7 +208,7 @@ export interface FileRouteTypes {
     | '/eventos/'
     | '/checkout/$orderId'
     | '/produtor/'
-    | '/api/public/mp'
+    | '/api/public/_diag/mp'
     | '/api/public/webhooks/mercadopago'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -227,7 +227,7 @@ export interface FileRouteTypes {
     | '/eventos'
     | '/checkout/$orderId'
     | '/produtor'
-    | '/api/public/mp'
+    | '/api/public/_diag/mp'
     | '/api/public/webhooks/mercadopago'
   id:
     | '__root__'
@@ -398,8 +398,8 @@ declare module '@tanstack/react-router' {
     }
     '/api/public/_diag/mp': {
       id: '/api/public/_diag/mp'
-      path: '/api/public/mp'
-      fullPath: '/api/public/mp'
+      path: '/api/public/_diag/mp'
+      fullPath: '/api/public/_diag/mp'
       preLoaderRoute: typeof ApiPublicDiagMpRouteImport
       parentRoute: typeof rootRouteImport
     }
