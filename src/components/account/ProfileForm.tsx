@@ -42,6 +42,12 @@ function maskPhone(value: string) {
   return digits.replace(/^(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
 }
 
+function maskPostalCode(value: string) {
+  return onlyDigits(value)
+    .slice(0, 8)
+    .replace(/^(\d{5})(\d)/, "$1-$2");
+}
+
 const profileSchema = z.object({
   fullName: z.string().trim().min(2, "Informe seu nome completo").max(120),
   cpf: z.string().refine((value) => !value || isValidCpf(value), "Informe um CPF válido"),
@@ -51,6 +57,18 @@ const profileSchema = z.object({
       (value) => !value || [10, 11].includes(onlyDigits(value).length),
       "Informe um telefone válido",
     ),
+  postalCode: z
+    .string()
+    .refine((value) => !value || onlyDigits(value).length === 8, "Informe um CEP válido"),
+  street: z.string().trim().max(160),
+  addressNumber: z.string().trim().max(20),
+  complement: z.string().trim().max(80),
+  neighborhood: z.string().trim().max(100),
+  city: z.string().trim().max(100),
+  state: z
+    .string()
+    .trim()
+    .refine((value) => !value || /^[A-Za-z]{2}$/.test(value), "Use a sigla do estado"),
 });
 
 export function ProfileForm() {
@@ -58,13 +76,22 @@ export function ProfileForm() {
   const [fullName, setFullName] = useState("");
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [street, setStreet] = useState("");
+  const [addressNumber, setAddressNumber] = useState("");
+  const [complement, setComplement] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
 
   const profile = useQuery({
     queryKey: ["my-profile"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, cpf, phone")
+        .select(
+          "id, full_name, email, cpf, phone, postal_code, street, address_number, complement, neighborhood, city, state",
+        )
         .single();
       if (error) throw error;
       return data;
@@ -76,17 +103,42 @@ export function ProfileForm() {
     setFullName(profile.data.full_name ?? "");
     setCpf(maskCpf(profile.data.cpf ?? ""));
     setPhone(maskPhone(profile.data.phone ?? ""));
+    setPostalCode(maskPostalCode(profile.data.postal_code ?? ""));
+    setStreet(profile.data.street ?? "");
+    setAddressNumber(profile.data.address_number ?? "");
+    setComplement(profile.data.complement ?? "");
+    setNeighborhood(profile.data.neighborhood ?? "");
+    setCity(profile.data.city ?? "");
+    setState(profile.data.state ?? "");
   }, [profile.data]);
 
   const save = useMutation({
     mutationFn: async () => {
-      const values = profileSchema.parse({ fullName, cpf, phone });
+      const values = profileSchema.parse({
+        fullName,
+        cpf,
+        phone,
+        postalCode,
+        street,
+        addressNumber,
+        complement,
+        neighborhood,
+        city,
+        state,
+      });
       const { error } = await supabase
         .from("profiles")
         .update({
           full_name: values.fullName,
           cpf: onlyDigits(values.cpf) || null,
           phone: onlyDigits(values.phone) || null,
+          postal_code: onlyDigits(values.postalCode) || null,
+          street: values.street || null,
+          address_number: values.addressNumber || null,
+          complement: values.complement || null,
+          neighborhood: values.neighborhood || null,
+          city: values.city || null,
+          state: values.state.toUpperCase() || null,
         })
         .eq("id", profile.data!.id);
       if (error) throw error;
@@ -138,6 +190,77 @@ export function ProfileForm() {
           value={fullName}
           onChange={(event) => setFullName(event.target.value)}
           required
+        />
+      </div>
+      <div className="md:col-span-2 mt-2 border-t border-border pt-5">
+        <h4 className="font-display font-semibold">Endereço</h4>
+        <p className="text-xs text-muted-foreground">
+          Usado para cadastro e emissão de documentos quando necessário.
+        </p>
+      </div>
+      <div>
+        <Label htmlFor="profile-postal-code">CEP</Label>
+        <Input
+          id="profile-postal-code"
+          inputMode="numeric"
+          autoComplete="postal-code"
+          placeholder="00000-000"
+          value={postalCode}
+          onChange={(event) => setPostalCode(maskPostalCode(event.target.value))}
+        />
+      </div>
+      <div>
+        <Label htmlFor="profile-street">Rua</Label>
+        <Input
+          id="profile-street"
+          autoComplete="address-line1"
+          value={street}
+          onChange={(event) => setStreet(event.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="profile-number">Número</Label>
+        <Input
+          id="profile-number"
+          value={addressNumber}
+          onChange={(event) => setAddressNumber(event.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="profile-complement">Complemento</Label>
+        <Input
+          id="profile-complement"
+          autoComplete="address-line2"
+          value={complement}
+          onChange={(event) => setComplement(event.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="profile-neighborhood">Bairro</Label>
+        <Input
+          id="profile-neighborhood"
+          value={neighborhood}
+          onChange={(event) => setNeighborhood(event.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="profile-city">Cidade</Label>
+        <Input
+          id="profile-city"
+          autoComplete="address-level2"
+          value={city}
+          onChange={(event) => setCity(event.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="profile-state">Estado</Label>
+        <Input
+          id="profile-state"
+          autoComplete="address-level1"
+          maxLength={2}
+          placeholder="SP"
+          value={state}
+          onChange={(event) => setState(event.target.value.toUpperCase())}
         />
       </div>
       <div>

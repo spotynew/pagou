@@ -14,6 +14,7 @@ import { updateAppSettings } from "@/lib/app-settings.functions";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RoleGate } from "@/components/auth/RoleGate";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -56,23 +57,7 @@ function AdminPanel() {
           </TabsList>
 
           <TabsContent value="vendedores" className="mt-6">
-            <AdminTable
-              rows={[
-                ["ACC-102", "Cavalo de Pau Produções", "Aguardando", "12/05"],
-                ["ACC-101", "Estúdio Fluxo", "Aprovado", "10/05"],
-                ["ACC-100", "Sala 42 Cursos", "Aprovado", "01/05"],
-              ]}
-              cols={["ID", "Empresa", "Status", "Enviado em"]}
-              renderAction={(r) =>
-                r[2] === "Aguardando" ? (
-                  <Button size="sm">Aprovar</Button>
-                ) : (
-                  <Button size="sm" variant="outline">
-                    Ver
-                  </Button>
-                )
-              }
-            />
+            <SellerApplications />
           </TabsContent>
 
           <TabsContent value="produtos" className="mt-6">
@@ -116,6 +101,95 @@ function AdminPanel() {
         </Tabs>
       </div>
     </SiteShell>
+  );
+}
+
+function SellerApplications() {
+  const queryClient = useQueryClient();
+  const applications = useQuery({
+    queryKey: ["admin-seller-applications"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("seller_accounts")
+        .select("id, display_name, legal_name, document, status, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const review = useMutation({
+    mutationFn: async ({ id, approve }: { id: string; approve: boolean }) => {
+      const { error } = await supabase.rpc("review_seller_account", {
+        _seller_id: id,
+        _approve: approve,
+      });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin-seller-applications"] });
+      toast.success("Cadastro revisado");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  if (applications.isPending)
+    return <p className="text-sm text-muted-foreground">Carregando cadastros…</p>;
+  if (!applications.data?.length)
+    return (
+      <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+        Nenhuma solicitação de vendedor recebida.
+      </p>
+    );
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+      <table className="w-full min-w-[760px] text-sm">
+        <thead className="bg-secondary/60 text-left text-xs uppercase tracking-widest text-muted-foreground">
+          <tr>
+            <th className="p-4">Marca</th>
+            <th className="p-4">Nome legal</th>
+            <th className="p-4">CPF/CNPJ</th>
+            <th className="p-4">Status</th>
+            <th className="p-4">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {applications.data.map((seller) => (
+            <tr key={seller.id} className="border-t border-border">
+              <td className="p-4 font-medium">{seller.display_name}</td>
+              <td className="p-4">{seller.legal_name}</td>
+              <td className="p-4 font-mono text-xs">{seller.document}</td>
+              <td className="p-4">
+                <Badge variant={seller.status === "approved" ? "default" : "secondary"}>
+                  {seller.status === "pending"
+                    ? "Aguardando"
+                    : seller.status === "approved"
+                      ? "Aprovado"
+                      : "Suspenso"}
+                </Badge>
+              </td>
+              <td className="p-4">
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    disabled={review.isPending || seller.status === "approved"}
+                    onClick={() => review.mutate({ id: seller.id, approve: true })}
+                  >
+                    Aprovar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={review.isPending || seller.status === "suspended"}
+                    onClick={() => review.mutate({ id: seller.id, approve: false })}
+                  >
+                    Suspender
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
