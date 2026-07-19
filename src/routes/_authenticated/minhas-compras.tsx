@@ -9,7 +9,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Download, PlayCircle, Ticket, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/minhas-compras")({
-  head: () => ({ meta: [{ title: "Minhas compras — PAGOU" }] }),
+  head: () => ({ meta: [{ title: "Minhas compras — PAGOU" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: MyPurchases,
 });
 

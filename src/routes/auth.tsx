@@ -12,7 +12,7 @@ import { Logo } from "@/components/site/Logo";
 import { ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Entrar — PAGOU" }] }),
+  head: () => ({ meta: [{ title: "Entrar — PAGOU" }, { name: "robots", content: "noindex, nofollow" }] }),
   validateSearch: (s: Record<string, unknown>) =>
     z.object({ redirect: z.string().optional() }).parse(s),
   component: AuthPage,

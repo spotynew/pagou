@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Administração — PAGOU" }] }),
+  head: () => ({ meta: [{ title: "Administração — PAGOU" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: AdminPanel,
 });
 
