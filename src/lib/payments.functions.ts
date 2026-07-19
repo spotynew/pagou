@@ -67,7 +67,7 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
     const paymentValues = {
       order_id: order.id,
       provider: "mercadopago",
-      method: "pix",
+      method: "pix" as const,
       provider_payment_id: String(mp.id),
       provider_ref: String(mp.id),
       status: mp.status === "approved" ? "approved" : "pending",
