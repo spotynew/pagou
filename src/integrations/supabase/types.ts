@@ -1097,6 +1097,26 @@ export type Database = {
     }
     Functions: {
       available_stock: { Args: { _batch_id: string }; Returns: number }
+      create_course_draft_order: {
+        Args: {
+          _buyer_id: string
+          _course_id: string
+          _platform_fee_bps?: number
+          _reservation_minutes?: number
+        }
+        Returns: string
+      }
+      create_event_draft_order: {
+        Args: {
+          _batch_id: string
+          _buyer_id: string
+          _event_id: string
+          _platform_fee_bps?: number
+          _quantity: number
+          _reservation_minutes?: number
+        }
+        Returns: string
+      }
       expire_stale_reservations: { Args: never; Returns: undefined }
       has_role: {
         Args: {
@@ -1104,6 +1124,18 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      redeem_ticket: {
+        Args: { _code: string }
+        Returns: {
+          checked_at: string
+          event_id: string
+          event_title: string
+          holder_name: string
+          result: string
+          sector: string
+          ticket_id: string
+        }[]
       }
     }
     Enums: {
