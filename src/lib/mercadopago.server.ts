@@ -1,25 +1,43 @@
 const API_BASE = "https://api.mercadopago.com";
 
-export type MercadoPagoPayment = {
-  id: number | string;
+export type MercadoPagoOrderPayment = {
+  id: string;
+  amount: string;
+  status: string;
+  status_detail?: string | null;
+  payment_method?: {
+    id?: string | null;
+    type?: string | null;
+    ticket_url?: string | null;
+    qr_code?: string | null;
+    qr_code_base64?: string | null;
+  } | null;
+};
+
+export type MercadoPagoOrder = {
+  id: string;
   status: string;
   status_detail?: string | null;
   external_reference?: string | null;
-  transaction_amount: number;
-  date_approved?: string | null;
-  date_of_expiration?: string | null;
-  payment_method_id?: string | null;
-  transaction_data?: {
-    qr_code?: string | null;
-    qr_code_base64?: string | null;
-    ticket_url?: string | null;
+  total_amount: string;
+  created_date?: string | null;
+  last_updated_date?: string | null;
+  transactions?: {
+    payments?: MercadoPagoOrderPayment[] | null;
   } | null;
 };
 
 function accessToken() {
   const token = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
   if (!token) throw new Error("MERCADO_PAGO_ACCESS_TOKEN não configurado");
+  if (!token.startsWith("APP_USR-")) {
+    throw new Error("Use o Access Token APP_USR da aplicação configurada com API de Orders");
+  }
   return token;
+}
+
+function isTestMode() {
+  return process.env.MERCADO_PAGO_TEST_MODE === "true";
 }
 
 async function mercadoPagoRequest<T>(path: string, init?: RequestInit): Promise<T> {
@@ -37,21 +55,28 @@ async function mercadoPagoRequest<T>(path: string, init?: RequestInit): Promise<
     | (T & {
         message?: string;
         error?: string;
-        cause?: Array<{ description?: string; code?: string | number }>;
+        details?: Array<{ message?: string; code?: string }>;
+        errors?: Array<{ message?: string; code?: string }>;
       })
     | null;
   if (!response.ok || !payload) {
-    const cause = payload?.cause
-      ?.map((item) => item.description)
+    const details = [...(payload?.details ?? []), ...(payload?.errors ?? [])]
+      .map((item) => item.message)
       .filter(Boolean)
       .join("; ");
-    const detail = cause || payload?.message || payload?.error || `HTTP ${response.status}`;
+    const detail = details || payload?.message || payload?.error || `HTTP ${response.status}`;
     throw new Error(`Mercado Pago: ${detail}`);
   }
   return payload;
 }
 
-export async function createPixPayment(input: {
+export function getOrderPayment(order: MercadoPagoOrder) {
+  const payment = order.transactions?.payments?.[0];
+  if (!payment) throw new Error("Mercado Pago não retornou a transação PIX");
+  return payment;
+}
+
+export async function createPixOrder(input: {
   orderId: string;
   amountCents: number;
   description: string;
@@ -59,54 +84,50 @@ export async function createPixPayment(input: {
   payerName?: string | null;
   payerCpf?: string | null;
 }) {
-  const notificationUrl = process.env.MERCADO_PAGO_NOTIFICATION_URL;
-  // Sandbox detection is server-side only, based on the configured token prefix.
-  // Test tokens start with "TEST-"; production tokens with "APP_USR-".
-  const isSandbox = accessToken().startsWith("TEST-");
-  const testPayerEmail = process.env.MERCADO_PAGO_TEST_PAYER_EMAIL?.trim().toLowerCase();
-  if (isSandbox && (!testPayerEmail || !/^test[a-z0-9._-]*@testuser\.com$/i.test(testPayerEmail))) {
-    throw new Error(
-      "Configure MERCADO_PAGO_TEST_PAYER_EMAIL com o e-mail de uma conta de teste Comprador diferente do vendedor",
-    );
-  }
-
-  const realNameParts = input.payerName?.trim().split(/\s+/).filter(Boolean) ?? [];
-  const payer: Record<string, unknown> = isSandbox
+  const amount = (input.amountCents / 100).toFixed(2);
+  const nameParts = input.payerName?.trim().split(/\s+/).filter(Boolean) ?? [];
+  const payer: Record<string, unknown> = isTestMode()
     ? {
-        // Conta compradora real criada no painel/API de testes do Mercado Pago.
-        email: testPayerEmail,
-        first_name: "Test",
-        last_name: "User",
-        identification: { type: "CPF", number: "19119119100" },
+        // Valores exigidos pelo cenário oficial de teste PIX da API de Orders.
+        email: "test_user_br@testuser.com",
+        first_name: "APRO",
       }
     : {
         email: input.payerEmail,
-        first_name: realNameParts[0] || "Cliente",
-        last_name: realNameParts.slice(1).join(" ") || "PAGOU",
+        first_name: nameParts[0] || "Cliente",
+        last_name: nameParts.slice(1).join(" ") || "PAGOU",
       };
+
   const cpf = input.payerCpf?.replace(/\D/g, "");
-  // Nunca misture a identidade fictícia do sandbox com CPF real do comprador.
-  if (!isSandbox && cpf?.length === 11) {
+  if (!isTestMode() && cpf?.length === 11) {
     payer.identification = { type: "CPF", number: cpf };
   }
 
-  return mercadoPagoRequest<MercadoPagoPayment>("/v1/payments", {
+  return mercadoPagoRequest<MercadoPagoOrder>("/v1/orders", {
     method: "POST",
-    headers: { "X-Idempotency-Key": `pagou-${input.orderId}-pix-v5` },
+    headers: { "X-Idempotency-Key": input.orderId },
     body: JSON.stringify({
-      transaction_amount: input.amountCents / 100,
-      description: input.description.slice(0, 250),
-      payment_method_id: "pix",
+      type: "online",
+      processing_mode: "automatic",
       external_reference: input.orderId,
-      ...(notificationUrl ? { notification_url: notificationUrl } : {}),
+      total_amount: amount,
+      description: input.description.slice(0, 250),
       payer,
+      transactions: {
+        payments: [
+          {
+            amount,
+            payment_method: { id: "pix", type: "bank_transfer" },
+          },
+        ],
+      },
     }),
   });
 }
 
-export function getMercadoPagoPayment(paymentId: string) {
-  if (!/^\d+$/.test(paymentId)) throw new Error("ID de pagamento inválido");
-  return mercadoPagoRequest<MercadoPagoPayment>(`/v1/payments/${paymentId}`);
+export function getMercadoPagoOrder(orderId: string) {
+  if (!/^ORD[A-Z0-9]+$/i.test(orderId)) throw new Error("ID de order inválido");
+  return mercadoPagoRequest<MercadoPagoOrder>(`/v1/orders/${orderId}`);
 }
 
 function hexToBytes(value: string) {
@@ -152,8 +173,8 @@ export async function validateMercadoPagoSignature(input: {
 }
 
 export function mapMercadoPagoStatus(status: string) {
-  if (status === "approved") return "approved" as const;
+  if (status === "processed") return "approved" as const;
   if (status === "refunded" || status === "charged_back") return "refunded" as const;
-  if (["rejected", "cancelled"].includes(status)) return "rejected" as const;
+  if (["failed", "canceled", "expired"].includes(status)) return "rejected" as const;
   return "pending" as const;
 }

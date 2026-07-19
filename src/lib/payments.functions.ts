@@ -10,7 +10,8 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { createPixPayment } = await import("@/lib/mercadopago.server");
+    const { createPixOrder, getOrderPayment, mapMercadoPagoStatus } =
+      await import("@/lib/mercadopago.server");
 
     const { data: order, error } = await supabase
       .from("orders")
@@ -51,7 +52,7 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
 
     const expiresAt = order.expires_at ?? new Date(Date.now() + 30 * 60_000).toISOString();
     const description = order.order_items.map((item) => item.title).join(" + ") || "Compra PAGOU";
-    const mp = await createPixPayment({
+    const mpOrder = await createPixOrder({
       orderId: order.id,
       amountCents: order.total_cents,
       description,
@@ -59,8 +60,9 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
       payerName: order.buyer_name || profile?.full_name,
       payerCpf: order.buyer_cpf || profile?.cpf,
     });
+    const mpPayment = getOrderPayment(mpOrder);
 
-    if (Math.round(mp.transaction_amount * 100) !== order.total_cents) {
+    if (Math.round(Number(mpOrder.total_amount) * 100) !== order.total_cents) {
       throw new Error("O provedor retornou um valor diferente do pedido");
     }
 
@@ -68,18 +70,30 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
       order_id: order.id,
       provider: "mercadopago",
       method: "pix" as const,
-      provider_payment_id: String(mp.id),
-      provider_ref: String(mp.id),
-      status: mp.status === "approved" ? ("approved" as const) : ("pending" as const),
+      provider_payment_id: mpPayment.id,
+      provider_ref: mpOrder.id,
+      status: mapMercadoPagoStatus(mpOrder.status),
       amount_cents: order.total_cents,
-      pix_qr_code: mp.transaction_data?.qr_code ?? null,
-      pix_qr_code_base64: mp.transaction_data?.qr_code_base64 ?? null,
-      expires_at: mp.date_of_expiration ?? expiresAt,
-      paid_at: mp.date_approved ?? null,
-      raw_status: [mp.status, mp.status_detail].filter(Boolean).join(":"),
+      pix_qr_code: mpPayment.payment_method?.qr_code ?? null,
+      pix_qr_code_base64: mpPayment.payment_method?.qr_code_base64 ?? null,
+      expires_at: expiresAt,
+      paid_at:
+        mpOrder.status === "processed"
+          ? (mpOrder.last_updated_date ?? new Date().toISOString())
+          : null,
+      raw_status: [mpOrder.status, mpOrder.status_detail].filter(Boolean).join(":"),
     };
-    const paymentQuery = existing
-      ? supabaseAdmin.from("payments").update(paymentValues).eq("id", existing.id)
+    // O webhook pode chegar imediatamente após a resposta do Mercado Pago.
+    // Consulte novamente para atualizar o registro criado por ele, evitando duplicidade.
+    const { data: providerExisting } = await supabaseAdmin
+      .from("payments")
+      .select("id")
+      .or(`provider_ref.eq.${mpOrder.id},provider_payment_id.eq.${mpPayment.id}`)
+      .limit(1)
+      .maybeSingle();
+    const paymentTarget = providerExisting ?? existing;
+    const paymentQuery = paymentTarget
+      ? supabaseAdmin.from("payments").update(paymentValues).eq("id", paymentTarget.id)
       : supabaseAdmin.from("payments").insert(paymentValues);
     const { data: payment, error: paymentError } = await paymentQuery
       .select("id, expires_at, pix_qr_code")
