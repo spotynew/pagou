@@ -13,16 +13,31 @@ import { appSettingsQuery } from "@/lib/app-settings";
 import { updateAppSettings } from "@/lib/app-settings.functions";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { RoleGate } from "@/components/auth/RoleGate";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Administração — PAGOU" }, { name: "robots", content: "noindex, nofollow" }] }),
-  component: AdminPanel,
+  head: () => ({
+    meta: [{ title: "Administração — PAGOU" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
+  component: AdminRoute,
 });
+
+function AdminRoute() {
+  return (
+    <RoleGate allowed={["admin"]}>
+      <AdminPanel />
+    </RoleGate>
+  );
+}
 
 function AdminPanel() {
   return (
     <SiteShell>
-      <PageHeader eyebrow="PAGOU · staff · Modo demonstração" title="Painel administrativo" subtitle="Dados fictícios para navegação. Nenhuma ação afeta pagamentos reais." />
+      <PageHeader
+        eyebrow="PAGOU · staff · Modo demonstração"
+        title="Painel administrativo"
+        subtitle="Dados fictícios para navegação. Nenhuma ação afeta pagamentos reais."
+      />
       <div className="mx-auto max-w-7xl px-4 py-10">
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Kpi label="GMV do mês" value={formatBRL(89211700)} />
@@ -48,7 +63,15 @@ function AdminPanel() {
                 ["ACC-100", "Sala 42 Cursos", "Aprovado", "01/05"],
               ]}
               cols={["ID", "Empresa", "Status", "Enviado em"]}
-              renderAction={(r) => r[2] === "Aguardando" ? <Button size="sm">Aprovar</Button> : <Button size="sm" variant="outline">Ver</Button>}
+              renderAction={(r) =>
+                r[2] === "Aguardando" ? (
+                  <Button size="sm">Aprovar</Button>
+                ) : (
+                  <Button size="sm" variant="outline">
+                    Ver
+                  </Button>
+                )
+              }
             />
           </TabsContent>
 
@@ -63,7 +86,9 @@ function AdminPanel() {
           </TabsContent>
 
           <TabsContent value="pagamentos" className="mt-6">
-            <p className="text-sm text-muted-foreground">Integração com Mercado Pago será exibida aqui. Nesta etapa, dados demonstrativos.</p>
+            <p className="text-sm text-muted-foreground">
+              Integração com Mercado Pago será exibida aqui. Nesta etapa, dados demonstrativos.
+            </p>
           </TabsContent>
 
           <TabsContent value="reembolsos" className="mt-6">
@@ -121,7 +146,8 @@ function ContactSettings() {
       toast.success("Canais de atendimento atualizados.");
       qc.invalidateQueries({ queryKey: ["app-settings"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Não foi possível salvar."),
+    onError: (error: unknown) =>
+      toast.error(error instanceof Error ? error.message : "Não foi possível salvar."),
   });
 
   return (
@@ -134,15 +160,32 @@ function ContactSettings() {
       <div className="mt-6 grid gap-4">
         <div>
           <Label htmlFor="support">E-mail de suporte</Label>
-          <Input id="support" type="email" value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} placeholder="suporte@suaempresa.com" />
+          <Input
+            id="support"
+            type="email"
+            value={supportEmail}
+            onChange={(e) => setSupportEmail(e.target.value)}
+            placeholder="suporte@suaempresa.com"
+          />
         </div>
         <div>
           <Label htmlFor="privacy">E-mail de privacidade (LGPD)</Label>
-          <Input id="privacy" type="email" value={privacyEmail} onChange={(e) => setPrivacyEmail(e.target.value)} placeholder="privacidade@suaempresa.com" />
+          <Input
+            id="privacy"
+            type="email"
+            value={privacyEmail}
+            onChange={(e) => setPrivacyEmail(e.target.value)}
+            placeholder="privacidade@suaempresa.com"
+          />
         </div>
         <div>
           <Label htmlFor="wa">WhatsApp de suporte</Label>
-          <Input id="wa" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+55 11 99999-9999" />
+          <Input
+            id="wa"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            placeholder="+55 11 99999-9999"
+          />
         </div>
       </div>
       <Button className="mt-6" disabled={save.isPending} onClick={() => save.mutate()}>
@@ -161,17 +204,36 @@ function Kpi({ label, value }: { label: string; value: string }) {
   );
 }
 
-function AdminTable({ cols, rows, renderAction }: { cols: string[]; rows: string[][]; renderAction?: (r: string[]) => React.ReactNode }) {
+function AdminTable({
+  cols,
+  rows,
+  renderAction,
+}: {
+  cols: string[];
+  rows: string[][];
+  renderAction?: (r: string[]) => React.ReactNode;
+}) {
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
       <table className="w-full text-sm">
         <thead className="bg-secondary/60 text-left text-xs uppercase tracking-widest text-muted-foreground">
-          <tr>{cols.map((c) => <th key={c} className="p-4">{c}</th>)}<th /></tr>
+          <tr>
+            {cols.map((c) => (
+              <th key={c} className="p-4">
+                {c}
+              </th>
+            ))}
+            <th />
+          </tr>
         </thead>
         <tbody>
           {rows.map((r, i) => (
             <tr key={i} className="border-t border-border">
-              {r.map((v, j) => <td key={j} className="p-4">{v}</td>)}
+              {r.map((v, j) => (
+                <td key={j} className="p-4">
+                  {v}
+                </td>
+              ))}
               <td className="p-4 text-right">{renderAction?.(r)}</td>
             </tr>
           ))}
