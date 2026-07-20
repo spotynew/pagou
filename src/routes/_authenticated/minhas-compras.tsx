@@ -218,7 +218,7 @@ function MyPurchases() {
                       </div>
                       {enrollment.courses?.slug && (
                         <Button asChild size="sm" className="mt-5">
-                          <Link to="/curso/$slug" params={{ slug: enrollment.courses.slug }}>
+                          <Link to="/cursos/$slug" params={{ slug: enrollment.courses.slug }}>
                             <PlayCircle className="mr-1 h-4 w-4" />
                             Continuar
                           </Link>
