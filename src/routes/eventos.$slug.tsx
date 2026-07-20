@@ -140,7 +140,7 @@ function EventDetail() {
     <SiteShell>
       <div className="relative h-[42vh] w-full overflow-hidden bg-ink">
         {event.cover_url && <img src={event.cover_url} alt="" className="h-full w-full object-cover opacity-70" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-transparent" />
+        <div className="absolute inset-0 bg-ink/45" />
       </div>
       <div className="mx-auto -mt-24 max-w-7xl px-4">
         <div className="grid gap-8 md:grid-cols-[1.6fr_1fr]">

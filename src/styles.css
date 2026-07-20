@@ -103,9 +103,7 @@
   --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(0.28 0.02 240);
   --sidebar-ring: oklch(0.72 0.19 149);
-  /* Shadows e gradientes */
-  --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-glow));
-  --gradient-ink: linear-gradient(135deg, oklch(0.16 0.02 240), oklch(0.24 0.03 150));
+  /* Elevação discreta para uma interface mais corporativa */
   --shadow-card: 0 1px 2px oklch(0.18 0.02 240 / 0.04), 0 8px 24px -12px oklch(0.18 0.02 240 / 0.12);
   --shadow-elevated: 0 20px 40px -20px oklch(0.18 0.02 240 / 0.25);
 }
@@ -154,12 +152,6 @@
   }
 }
 
-@utility bg-gradient-primary {
-  background-image: var(--gradient-primary);
-}
-@utility bg-gradient-ink {
-  background-image: var(--gradient-ink);
-}
 @utility shadow-card {
   box-shadow: var(--shadow-card);
 }
@@ -182,4 +174,3 @@ div[style*="Edit with Lovable"],
   position: absolute !important;
   z-index: -9999 !important;
 }
-

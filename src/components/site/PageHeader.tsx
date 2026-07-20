@@ -1,6 +1,6 @@
 export function PageHeader({ eyebrow, title, subtitle }: { eyebrow?: string; title: string; subtitle?: string }) {
   return (
-    <div className="border-b border-border/60 bg-gradient-to-b from-secondary/40 to-background">
+    <div className="border-b border-border/60 bg-secondary/35">
       <div className="mx-auto max-w-7xl px-4 py-14">
         {eyebrow && (
           <span className="mb-3 inline-block rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">

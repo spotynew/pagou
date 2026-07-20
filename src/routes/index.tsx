@@ -8,7 +8,7 @@ import { CourseCard } from "@/components/site/CourseCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShieldCheck, Zap, TicketCheck, Search, ArrowRight, Sparkles } from "lucide-react";
+import { ShieldCheck, Zap, TicketCheck, Search, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { DemoNotice } from "@/components/site/DemoNotice";
 
@@ -41,11 +41,10 @@ function Home() {
     <SiteShell>
       {/* HERO */}
       <section className="relative overflow-hidden bg-ink text-ink-foreground">
-        <div className="pointer-events-none absolute inset-0 opacity-40 [background:radial-gradient(60%_50%_at_20%_10%,var(--color-primary)_0%,transparent_60%)]" />
         <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-20 md:grid-cols-[1.15fr_1fr] md:py-28">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-ink-foreground/15 bg-ink-foreground/5 px-3 py-1 text-xs font-medium text-ink-foreground/80">
-              <Sparkles className="h-3.5 w-3.5 text-primary" /> Nova experiência PAGOU
+              <span className="h-2 w-2 rounded-full bg-primary" /> Eventos, cursos e experiências
             </span>
             <h1 className="mt-6 font-display text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl">
               Comprou. <span className="text-primary">Pagou.</span> Aproveitou.
@@ -65,16 +64,15 @@ function Home() {
             </div>
             <div className="mt-10 grid grid-cols-3 gap-4 text-sm text-ink-foreground/70">
               <Trust icon={<ShieldCheck className="h-5 w-5 text-primary" />} label="Pagamento seguro" />
-              <Trust icon={<Zap className="h-5 w-5 text-primary" />} label="PIX e cartão" />
+              <Trust icon={<Zap className="h-5 w-5 text-primary" />} label="PIX disponível" />
               <Trust icon={<TicketCheck className="h-5 w-5 text-primary" />} label="Ingresso 100% digital" />
             </div>
           </div>
           <div className="relative hidden md:block">
-            <div className="absolute inset-0 rounded-3xl bg-gradient-primary opacity-20 blur-3xl" />
             {featured[0] && (
-              <div className="relative overflow-hidden rounded-3xl border border-ink-foreground/10 shadow-elevated">
-                <img src={featured[0].cover_url ?? ""} alt="" className="h-[420px] w-full object-cover" />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-6">
+              <div className="relative overflow-hidden rounded-2xl border border-ink-foreground/15 shadow-elevated">
+                <img src={featured[0].cover_url ?? ""} alt="" className="h-[340px] w-full object-cover" />
+                <div className="border-t border-white/10 bg-black/85 p-6">
                   <span className="text-xs uppercase tracking-widest text-primary">Destaque</span>
                   <h3 className="mt-1 font-display text-2xl font-bold text-white">{featured[0].title}</h3>
                   <p className="mt-1 text-sm text-white/70">{featured[0].venue} · {featured[0].city}</p>
@@ -142,7 +140,7 @@ function Home() {
 
       {/* CTA vendedor */}
       <section className="mx-auto max-w-7xl px-4 pb-24">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-primary p-10 md:p-16">
+        <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-primary p-10 md:p-16">
           <div className="max-w-2xl">
             <span className="rounded-full bg-black/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white">Para produtores</span>
             <h2 className="mt-4 font-display text-3xl font-bold text-black md:text-5xl">Venda com a PAGOU.</h2>
