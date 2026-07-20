@@ -1,14 +1,6 @@
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site/SiteShell";
-import {
-  LayoutDashboard,
-  Ticket,
-  GraduationCap,
-  Users,
-  Tag,
-  Settings,
-  BarChart3,
-} from "lucide-react";
+import { LayoutDashboard, Ticket, GraduationCap } from "lucide-react";
 import { RoleGate } from "@/components/auth/RoleGate";
 
 export const Route = createFileRoute("/_authenticated/produtor")({
@@ -33,10 +25,6 @@ const NAV: { to: string; label: string; icon: typeof LayoutDashboard; exact?: bo
   { to: "/produtor", label: "Visão geral", icon: LayoutDashboard, exact: true },
   { to: "/produtor/eventos", label: "Eventos", icon: Ticket },
   { to: "/produtor/cursos", label: "Cursos", icon: GraduationCap },
-  { to: "/produtor/cupons", label: "Cupons & cortesias", icon: Tag },
-  { to: "/produtor/participantes", label: "Participantes", icon: Users },
-  { to: "/produtor/relatorios", label: "Relatórios", icon: BarChart3 },
-  { to: "/produtor/configuracoes", label: "Configurações", icon: Settings },
 ];
 
 function ProducerLayout() {

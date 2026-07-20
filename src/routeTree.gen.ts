@@ -25,6 +25,8 @@ import { Route as AuthenticatedMinhasComprasRouteImport } from './routes/_authen
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedProdutorIndexRouteImport } from './routes/_authenticated/produtor.index'
+import { Route as AuthenticatedProdutorEventosRouteImport } from './routes/_authenticated/produtor.eventos'
+import { Route as AuthenticatedProdutorCursosRouteImport } from './routes/_authenticated/produtor.cursos'
 import { Route as AuthenticatedCheckoutOrderIdRouteImport } from './routes/_authenticated/checkout.$orderId'
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
 
@@ -109,6 +111,18 @@ const AuthenticatedProdutorIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedProdutorRoute,
   } as any)
+const AuthenticatedProdutorEventosRoute =
+  AuthenticatedProdutorEventosRouteImport.update({
+    id: '/eventos',
+    path: '/eventos',
+    getParentRoute: () => AuthenticatedProdutorRoute,
+  } as any)
+const AuthenticatedProdutorCursosRoute =
+  AuthenticatedProdutorCursosRouteImport.update({
+    id: '/cursos',
+    path: '/cursos',
+    getParentRoute: () => AuthenticatedProdutorRoute,
+  } as any)
 const AuthenticatedCheckoutOrderIdRoute =
   AuthenticatedCheckoutOrderIdRouteImport.update({
     id: '/checkout/$orderId',
@@ -138,6 +152,8 @@ export interface FileRoutesByFullPath {
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
   '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
+  '/produtor/cursos': typeof AuthenticatedProdutorCursosRoute
+  '/produtor/eventos': typeof AuthenticatedProdutorEventosRoute
   '/produtor/': typeof AuthenticatedProdutorIndexRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
@@ -156,6 +172,8 @@ export interface FileRoutesByTo {
   '/cursos': typeof CursosIndexRoute
   '/eventos': typeof EventosIndexRoute
   '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
+  '/produtor/cursos': typeof AuthenticatedProdutorCursosRoute
+  '/produtor/eventos': typeof AuthenticatedProdutorEventosRoute
   '/produtor': typeof AuthenticatedProdutorIndexRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
@@ -177,6 +195,8 @@ export interface FileRoutesById {
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
   '/_authenticated/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
+  '/_authenticated/produtor/cursos': typeof AuthenticatedProdutorCursosRoute
+  '/_authenticated/produtor/eventos': typeof AuthenticatedProdutorEventosRoute
   '/_authenticated/produtor/': typeof AuthenticatedProdutorIndexRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
@@ -198,6 +218,8 @@ export interface FileRouteTypes {
     | '/cursos/'
     | '/eventos/'
     | '/checkout/$orderId'
+    | '/produtor/cursos'
+    | '/produtor/eventos'
     | '/produtor/'
     | '/api/public/webhooks/mercadopago'
   fileRoutesByTo: FileRoutesByTo
@@ -216,6 +238,8 @@ export interface FileRouteTypes {
     | '/cursos'
     | '/eventos'
     | '/checkout/$orderId'
+    | '/produtor/cursos'
+    | '/produtor/eventos'
     | '/produtor'
     | '/api/public/webhooks/mercadopago'
   id:
@@ -236,6 +260,8 @@ export interface FileRouteTypes {
     | '/cursos/'
     | '/eventos/'
     | '/_authenticated/checkout/$orderId'
+    | '/_authenticated/produtor/cursos'
+    | '/_authenticated/produtor/eventos'
     | '/_authenticated/produtor/'
     | '/api/public/webhooks/mercadopago'
   fileRoutesById: FileRoutesById
@@ -369,6 +395,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProdutorIndexRouteImport
       parentRoute: typeof AuthenticatedProdutorRoute
     }
+    '/_authenticated/produtor/eventos': {
+      id: '/_authenticated/produtor/eventos'
+      path: '/eventos'
+      fullPath: '/produtor/eventos'
+      preLoaderRoute: typeof AuthenticatedProdutorEventosRouteImport
+      parentRoute: typeof AuthenticatedProdutorRoute
+    }
+    '/_authenticated/produtor/cursos': {
+      id: '/_authenticated/produtor/cursos'
+      path: '/cursos'
+      fullPath: '/produtor/cursos'
+      preLoaderRoute: typeof AuthenticatedProdutorCursosRouteImport
+      parentRoute: typeof AuthenticatedProdutorRoute
+    }
     '/_authenticated/checkout/$orderId': {
       id: '/_authenticated/checkout/$orderId'
       path: '/checkout/$orderId'
@@ -387,10 +427,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedProdutorRouteChildren {
+  AuthenticatedProdutorCursosRoute: typeof AuthenticatedProdutorCursosRoute
+  AuthenticatedProdutorEventosRoute: typeof AuthenticatedProdutorEventosRoute
   AuthenticatedProdutorIndexRoute: typeof AuthenticatedProdutorIndexRoute
 }
 
 const AuthenticatedProdutorRouteChildren: AuthenticatedProdutorRouteChildren = {
+  AuthenticatedProdutorCursosRoute: AuthenticatedProdutorCursosRoute,
+  AuthenticatedProdutorEventosRoute: AuthenticatedProdutorEventosRoute,
   AuthenticatedProdutorIndexRoute: AuthenticatedProdutorIndexRoute,
 }
 
