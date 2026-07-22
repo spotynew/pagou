@@ -211,12 +211,15 @@ type EventFormData = {
 };
 
 function EventForm({
+  sellerId,
   pending,
   onSubmit,
 }: {
+  sellerId: string | undefined;
   pending: boolean;
   onSubmit: (data: EventFormData) => void;
 }) {
+  const [cover, setCover] = useState<UploadedCover | null>(null);
   return (
     <form
       className="grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-card md:grid-cols-2"
@@ -226,7 +229,7 @@ function EventForm({
         onSubmit({
           title: String(form.get("title")),
           description: String(form.get("description") || ""),
-          coverUrl: String(form.get("coverUrl") || ""),
+          coverUrl: cover?.url || "",
           category: String(form.get("category") || ""),
           city: String(form.get("city")),
           venue: String(form.get("venue")),
@@ -248,7 +251,17 @@ function EventForm({
         <Label htmlFor="event-description">Descrição</Label>
         <Textarea id="event-description" name="description" />
       </div>
-      <Field label="URL da capa" name="coverUrl" type="url" />
+      <div className="md:col-span-2">
+        <Label>Capa do evento</Label>
+        <EventCoverUploader
+          sellerId={sellerId}
+          value={cover}
+          onChange={setCover}
+          onDeletePrevious={(path) => {
+            void supabase.storage.from("event-covers").remove([path]);
+          }}
+        />
+      </div>
       <Field label="Data e hora" name="startsAt" type="datetime-local" required />
       <Field label="Cidade" name="city" required />
       <Field label="Local" name="venue" required />
