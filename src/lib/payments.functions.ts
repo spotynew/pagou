@@ -99,7 +99,10 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
       throw new Error("O provedor retornou um valor diferente do pedido");
     }
 
-    const mappedStatus = mapMercadoPagoStatus(mpOrder.status);
+    const mappedOrderStatus = mapMercadoPagoStatus(mpOrder.status);
+    const mappedTransactionStatus = mapMercadoPagoStatus(mpPayment.status);
+    const mappedStatus =
+      mappedOrderStatus !== "pending" ? mappedOrderStatus : mappedTransactionStatus;
     const paidAt =
       mappedStatus === "approved"
         ? (mpOrder.last_updated_date ?? new Date().toISOString())
