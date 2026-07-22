@@ -1,0 +1,21 @@
+name: Reconciliar pagamentos Mercado Pago
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reconciliar PIX pendentes
+        if: ${{ env.RECONCILIATION_SECRET != '' }}
+        env:
+          RECONCILIATION_SECRET: ${{ secrets.PAYMENT_RECONCILIATION_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer ${RECONCILIATION_SECRET}" \
+            --header "Content-Type: application/json" \
+            https://pagou.lovable.app/api/internal/reconcile/mercadopago
