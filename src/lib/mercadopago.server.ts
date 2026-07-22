@@ -71,7 +71,12 @@ async function mercadoPagoRequest<T>(path: string, init?: RequestInit): Promise<
 }
 
 export function getOrderPayment(order: MercadoPagoOrder) {
-  const payment = order.transactions?.payments?.[0];
+  const payments = order.transactions?.payments ?? [];
+  const payment =
+    payments.find(
+      (item) =>
+        item.payment_method?.id === "pix" || item.payment_method?.type === "bank_transfer",
+    ) ?? payments[0];
   if (!payment) throw new Error("Mercado Pago não retornou a transação PIX");
   return payment;
 }
@@ -173,8 +178,15 @@ export async function validateMercadoPagoSignature(input: {
 }
 
 export function mapMercadoPagoStatus(status: string) {
-  if (status === "processed") return "approved" as const;
-  if (status === "refunded" || status === "charged_back") return "refunded" as const;
-  if (["failed", "canceled", "expired"].includes(status)) return "rejected" as const;
+  const normalized = status.trim().toLowerCase();
+  if (["processed", "approved", "accredited"].includes(normalized)) {
+    return "approved" as const;
+  }
+  if (["refunded", "charged_back", "charged-back"].includes(normalized)) {
+    return "refunded" as const;
+  }
+  if (["failed", "canceled", "cancelled", "expired", "rejected"].includes(normalized)) {
+    return "rejected" as const;
+  }
   return "pending" as const;
 }
