@@ -32,6 +32,101 @@ function CheckinRoute() {
   );
 }
 
+function QrScanner({
+  onDetected,
+  pauseWhen,
+}: {
+  onDetected: (value: string) => void;
+  pauseWhen: boolean;
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const controlsRef = useRef<IScannerControls | null>(null);
+  const [active, setActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const lastValueRef = useRef<{ value: string; at: number } | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+    const reader = new BrowserQRCodeReader();
+    (async () => {
+      try {
+        const controls = await reader.decodeFromVideoDevice(
+          undefined,
+          videoRef.current!,
+          (result) => {
+            if (!result || pauseWhen) return;
+            const text = result.getText();
+            const now = Date.now();
+            if (
+              lastValueRef.current &&
+              lastValueRef.current.value === text &&
+              now - lastValueRef.current.at < 2500
+            ) {
+              return;
+            }
+            lastValueRef.current = { value: text, at: now };
+            onDetected(text);
+          },
+        );
+        if (cancelled) {
+          controls.stop();
+          return;
+        }
+        controlsRef.current = controls;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Não foi possível acessar a câmera");
+        setActive(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controlsRef.current?.stop();
+      controlsRef.current = null;
+    };
+  }, [active, onDetected, pauseWhen]);
+
+  return (
+    <div className="relative aspect-square overflow-hidden rounded-2xl bg-ink text-ink-foreground">
+      <video
+        ref={videoRef}
+        className={"h-full w-full object-cover " + (active ? "" : "hidden")}
+        muted
+        playsInline
+      />
+      {!active && (
+        <div className="flex h-full flex-col items-center justify-center gap-3 text-ink-foreground/70">
+          <Camera className="h-10 w-10" />
+          <p className="text-sm">
+            {error ? error : "Ative a câmera para ler o QR do ingresso"}
+          </p>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="rounded-full"
+            onClick={() => {
+              setError(null);
+              setActive(true);
+            }}
+          >
+            Ativar câmera
+          </Button>
+        </div>
+      )}
+      {active && (
+        <button
+          type="button"
+          onClick={() => setActive(false)}
+          className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-3 py-1 text-xs text-white"
+          aria-label="Desativar câmera"
+        >
+          <CameraOff className="h-3.5 w-3.5" /> Parar
+        </button>
+      )}
+    </div>
+  );
+}
+
 function CheckinPage() {
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<Status>(null);
