@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventosIndexRouteImport } from './routes/eventos.index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
+import { Route as VerificarIngressoCodeRouteImport } from './routes/verificar-ingresso.$code'
 import { Route as EventosSlugRouteImport } from './routes/eventos.$slug'
 import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
 import { Route as AuthenticatedProdutorRouteImport } from './routes/_authenticated/produtor'
@@ -74,6 +75,11 @@ const EventosIndexRoute = EventosIndexRouteImport.update({
 const CursosIndexRoute = CursosIndexRouteImport.update({
   id: '/cursos/',
   path: '/cursos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificarIngressoCodeRoute = VerificarIngressoCodeRouteImport.update({
+  id: '/verificar-ingresso/$code',
+  path: '/verificar-ingresso/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventosSlugRoute = EventosSlugRouteImport.update({
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/produtor': typeof AuthenticatedProdutorRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
+  '/verificar-ingresso/$code': typeof VerificarIngressoCodeRoute
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
   '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/minhas-compras': typeof AuthenticatedMinhasComprasRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
+  '/verificar-ingresso/$code': typeof VerificarIngressoCodeRoute
   '/cursos': typeof CursosIndexRoute
   '/eventos': typeof EventosIndexRoute
   '/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   '/_authenticated/produtor': typeof AuthenticatedProdutorRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/eventos/$slug': typeof EventosSlugRoute
+  '/verificar-ingresso/$code': typeof VerificarIngressoCodeRoute
   '/cursos/': typeof CursosIndexRoute
   '/eventos/': typeof EventosIndexRoute
   '/_authenticated/checkout/$orderId': typeof AuthenticatedCheckoutOrderIdRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/produtor'
     | '/cursos/$slug'
     | '/eventos/$slug'
+    | '/verificar-ingresso/$code'
     | '/cursos/'
     | '/eventos/'
     | '/checkout/$orderId'
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/minhas-compras'
     | '/cursos/$slug'
     | '/eventos/$slug'
+    | '/verificar-ingresso/$code'
     | '/cursos'
     | '/eventos'
     | '/checkout/$orderId'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/_authenticated/produtor'
     | '/cursos/$slug'
     | '/eventos/$slug'
+    | '/verificar-ingresso/$code'
     | '/cursos/'
     | '/eventos/'
     | '/_authenticated/checkout/$orderId'
@@ -302,6 +314,7 @@ export interface RootRouteChildren {
   VenderRoute: typeof VenderRoute
   CursosSlugRoute: typeof CursosSlugRoute
   EventosSlugRoute: typeof EventosSlugRoute
+  VerificarIngressoCodeRoute: typeof VerificarIngressoCodeRoute
   CursosIndexRoute: typeof CursosIndexRoute
   EventosIndexRoute: typeof EventosIndexRoute
   ApiInternalReconcileMercadopagoRoute: typeof ApiInternalReconcileMercadopagoRoute
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/cursos'
       fullPath: '/cursos/'
       preLoaderRoute: typeof CursosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verificar-ingresso/$code': {
+      id: '/verificar-ingresso/$code'
+      path: '/verificar-ingresso/$code'
+      fullPath: '/verificar-ingresso/$code'
+      preLoaderRoute: typeof VerificarIngressoCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/eventos/$slug': {
@@ -515,6 +535,7 @@ const rootRouteChildren: RootRouteChildren = {
   VenderRoute: VenderRoute,
   CursosSlugRoute: CursosSlugRoute,
   EventosSlugRoute: EventosSlugRoute,
+  VerificarIngressoCodeRoute: VerificarIngressoCodeRoute,
   CursosIndexRoute: CursosIndexRoute,
   EventosIndexRoute: EventosIndexRoute,
   ApiInternalReconcileMercadopagoRoute: ApiInternalReconcileMercadopagoRoute,

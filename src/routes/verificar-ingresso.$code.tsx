@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Clock, XCircle, Loader2, Ticket } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/site/PageHeader";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTimeBR } from "@/lib/format";
 
@@ -148,8 +147,4 @@ function TicketCard({ ticket }: { ticket: VerifyRow }) {
       </p>
     </div>
   );
-}
-
-function _unused() {
-  return <Badge />;
 }
