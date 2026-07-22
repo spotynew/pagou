@@ -58,6 +58,22 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
           if (!validSignature) return json({ error: "invalid_signature" }, 401);
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          await supabaseAdmin.from("audit_logs").insert({
+            action: "mercadopago_webhook_received",
+            target_table: "mercadopago_webhooks",
+            metadata: {
+              topic: topic || "order",
+              data_id: dataId,
+              request_id: requestId,
+              payload: {
+                type: body.type ?? null,
+                topic: body.topic ?? null,
+                action: body.action ?? null,
+                data: body.data?.id == null ? null : { id: String(body.data.id) },
+              },
+            },
+          });
+
           const { syncMercadoPagoOrder } = await import("@/lib/mercadopago-sync.server");
           const result = await syncMercadoPagoOrder({
             supabaseAdmin,
