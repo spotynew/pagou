@@ -4,13 +4,16 @@ import { PageHeader } from "@/components/site/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock, Camera, Search } from "lucide-react";
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { CheckCircle2, XCircle, Clock, Camera, Search, CameraOff, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { redeemTicket, type CheckinResult } from "@/lib/checkin.functions";
 import { RoleGate } from "@/components/auth/RoleGate";
+import { supabase } from "@/integrations/supabase/client";
+import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
+import { formatDateTimeBR } from "@/lib/format";
 
 type Status = CheckinResult["result"] | null;
 
@@ -29,12 +32,136 @@ function CheckinRoute() {
   );
 }
 
+function QrScanner({
+  onDetected,
+  pauseWhen,
+}: {
+  onDetected: (value: string) => void;
+  pauseWhen: boolean;
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const controlsRef = useRef<IScannerControls | null>(null);
+  const [active, setActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const lastValueRef = useRef<{ value: string; at: number } | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+    const reader = new BrowserQRCodeReader();
+    (async () => {
+      try {
+        const controls = await reader.decodeFromVideoDevice(
+          undefined,
+          videoRef.current!,
+          (result) => {
+            if (!result || pauseWhen) return;
+            const text = result.getText();
+            const now = Date.now();
+            if (
+              lastValueRef.current &&
+              lastValueRef.current.value === text &&
+              now - lastValueRef.current.at < 2500
+            ) {
+              return;
+            }
+            lastValueRef.current = { value: text, at: now };
+            onDetected(text);
+          },
+        );
+        if (cancelled) {
+          controls.stop();
+          return;
+        }
+        controlsRef.current = controls;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Não foi possível acessar a câmera");
+        setActive(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controlsRef.current?.stop();
+      controlsRef.current = null;
+    };
+  }, [active, onDetected, pauseWhen]);
+
+  return (
+    <div className="relative aspect-square overflow-hidden rounded-2xl bg-ink text-ink-foreground">
+      <video
+        ref={videoRef}
+        className={"h-full w-full object-cover " + (active ? "" : "hidden")}
+        muted
+        playsInline
+      />
+      {!active && (
+        <div className="flex h-full flex-col items-center justify-center gap-3 text-ink-foreground/70">
+          <Camera className="h-10 w-10" />
+          <p className="text-sm">
+            {error ? error : "Ative a câmera para ler o QR do ingresso"}
+          </p>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="rounded-full"
+            onClick={() => {
+              setError(null);
+              setActive(true);
+            }}
+          >
+            Ativar câmera
+          </Button>
+        </div>
+      )}
+      {active && (
+        <button
+          type="button"
+          onClick={() => setActive(false)}
+          className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-3 py-1 text-xs text-white"
+          aria-label="Desativar câmera"
+        >
+          <CameraOff className="h-3.5 w-3.5" /> Parar
+        </button>
+      )}
+    </div>
+  );
+}
+
 function CheckinPage() {
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<Status>(null);
   const [current, setCurrent] = useState<CheckinResult | null>(null);
   const [log, setLog] = useState<{ code: string; at: string; result: Status }[]>([]);
   const redeem = useServerFn(redeemTicket);
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
+
+  type Preview = {
+    ticket_id: string;
+    code_suffix: string;
+    status: string;
+    sector: string | null;
+    batch_name: string | null;
+    event_title: string | null;
+    event_starts_at: string | null;
+    event_venue: string | null;
+    checked_at: string | null;
+  };
+
+  const preview = useQuery({
+    queryKey: ["verify-ticket-preview", pendingCode],
+    enabled: !!pendingCode,
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: Preview[] | null; error: { message: string } | null }>)(
+        "verify_ticket_public",
+        { _code: pendingCode! },
+      );
+      if (error) throw new Error(error.message);
+      return (data && data[0]) || null;
+    },
+  });
 
   const validation = useMutation({
     mutationFn: (ticketCode: string) => redeem({ data: { code: ticketCode } }),
@@ -44,7 +171,7 @@ function CheckinPage() {
       setLog((prev) =>
         [
           {
-            code: code.trim().toUpperCase(),
+            code: (pendingCode ?? code).trim().toUpperCase(),
             at: new Date(result.checked_at ?? Date.now()).toLocaleTimeString("pt-BR"),
             result: result.result,
           },
@@ -54,18 +181,41 @@ function CheckinPage() {
       if (result.result === "accepted") {
         toast.success("Entrada liberada");
         setCode("");
+        setPendingCode(null);
       }
     },
     onError: (error: unknown) =>
       toast.error(error instanceof Error ? error.message : "Falha ao validar ingresso"),
   });
 
-  function validate() {
-    const c = code.trim().toUpperCase();
-    if (c.length < 6 || validation.isPending) return;
+  function extractCode(raw: string): string {
+    const trimmed = raw.trim();
+    // Support full URL /verificar-ingresso/CODE
+    const match = trimmed.match(/verificar-ingresso\/([^/?#]+)/i);
+    const value = match ? decodeURIComponent(match[1]) : trimmed;
+    return value.toUpperCase();
+  }
+
+  function loadPreview() {
+    const c = extractCode(code);
+    if (c.length < 6) return;
     setStatus(null);
     setCurrent(null);
-    validation.mutate(c);
+    setPendingCode(c);
+  }
+
+  function confirmEntry() {
+    if (!pendingCode || validation.isPending) return;
+    validation.mutate(pendingCode);
+  }
+
+  function handleScanned(raw: string) {
+    const c = extractCode(raw);
+    if (c.length < 6) return;
+    setCode(c);
+    setStatus(null);
+    setCurrent(null);
+    setPendingCode(c);
   }
 
   return (
@@ -77,15 +227,7 @@ function CheckinPage() {
       />
       <div className="mx-auto grid max-w-4xl gap-6 px-4 py-10 md:grid-cols-[1fr_1fr]">
         <div className="rounded-3xl border border-border bg-card p-6 shadow-elevated">
-          <div className="aspect-square rounded-2xl bg-ink text-ink-foreground">
-            <div className="flex h-full flex-col items-center justify-center gap-3 text-ink-foreground/60">
-              <Camera className="h-10 w-10" />
-              <p className="text-sm">Leitor por câmera em preparação</p>
-              <Button size="sm" variant="secondary" className="rounded-full" disabled>
-                Ativar câmera
-              </Button>
-            </div>
-          </div>
+          <QrScanner onDetected={handleScanned} pauseWhen={!!pendingCode} />
           <div className="mt-6">
             <label className="text-sm font-medium">Ou digite o código</label>
             <div className="mt-2 flex gap-2">
@@ -98,11 +240,79 @@ function CheckinPage() {
                   className="pl-9 font-mono uppercase"
                 />
               </div>
-              <Button onClick={validate} disabled={validation.isPending || code.trim().length < 6}>
-                {validation.isPending ? "Validando…" : "Validar"}
+              <Button onClick={loadPreview} disabled={code.trim().length < 6}>
+                Consultar
               </Button>
             </div>
           </div>
+
+          {pendingCode && (
+            <div className="mt-6 rounded-2xl border border-border bg-secondary/40 p-4">
+              {preview.isPending ? (
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Consultando ingresso…
+                </div>
+              ) : preview.isError || !preview.data ? (
+                <div className="text-sm text-destructive">Ingresso inexistente.</div>
+              ) : (
+                <div className="space-y-2 text-sm">
+                  <p className="font-display text-base font-bold">
+                    {preview.data.event_title ?? "Evento"}
+                  </p>
+                  {preview.data.event_starts_at && (
+                    <p className="text-muted-foreground">
+                      {formatDateTimeBR(preview.data.event_starts_at)}
+                    </p>
+                  )}
+                  {preview.data.event_venue && (
+                    <p className="text-muted-foreground">{preview.data.event_venue}</p>
+                  )}
+                  {(preview.data.sector || preview.data.batch_name) && (
+                    <p>
+                      {[preview.data.sector, preview.data.batch_name].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                  <p className="font-mono text-xs">••••{preview.data.code_suffix}</p>
+                  <Badge
+                    variant="outline"
+                    className={
+                      preview.data.status === "valid"
+                        ? "border-primary/40 text-primary"
+                        : preview.data.status === "used"
+                          ? "border-yellow-500/40 text-yellow-700"
+                          : "border-destructive/40 text-destructive"
+                    }
+                  >
+                    {preview.data.status}
+                  </Badge>
+                </div>
+              )}
+
+              <div className="mt-4 flex gap-2">
+                <Button
+                  onClick={confirmEntry}
+                  disabled={
+                    validation.isPending ||
+                    !preview.data ||
+                    preview.data.status !== "valid"
+                  }
+                  className="flex-1"
+                >
+                  {validation.isPending ? "Confirmando…" : "CONFIRMAR ENTRADA"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setPendingCode(null);
+                    setCurrent(null);
+                    setStatus(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
 
           {status && (
             <div
