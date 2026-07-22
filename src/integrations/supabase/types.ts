@@ -1183,6 +1183,20 @@ export type Database = {
         Args: { _approve: boolean; _seller_id: string }
         Returns: undefined
       }
+      verify_ticket_public: {
+        Args: { _code: string }
+        Returns: {
+          batch_name: string
+          checked_at: string
+          code_suffix: string
+          event_starts_at: string
+          event_title: string
+          event_venue: string
+          sector: string
+          status: string
+          ticket_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "buyer" | "producer" | "admin" | "checkin_staff"
