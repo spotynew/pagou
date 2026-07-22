@@ -11,7 +11,7 @@ type AdminClient = SupabaseClient<Database>;
 type SyncInput = {
   supabaseAdmin: AdminClient;
   providerOrderId: string;
-  source: "webhook" | "admin" | "scheduled_reconciliation";
+  source: "webhook" | "admin" | "scheduled_reconciliation" | "buyer_reconciliation";
   actorId?: string | null;
   requestId?: string | null;
   notificationAction?: string | null;
