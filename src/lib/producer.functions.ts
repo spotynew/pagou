@@ -96,12 +96,12 @@ export const listProducerEvents = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("events")
       .select(
-        "id, title, slug, city, venue, starts_at, published, sales_count, ticket_types(id, name, sector, ticket_batches(id, name, price_cents, quantity_total, quantity_sold, active, max_per_order))",
+        "id, title, slug, cover_url, city, venue, starts_at, published, sales_count, ticket_types(id, name, sector, ticket_batches(id, name, price_cents, quantity_total, quantity_sold, active, max_per_order))",
       )
       .eq("seller_id", seller.id)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return { sellerId: seller.id, events: data ?? [] };
   });
 
 const createEventInput = z.object({
@@ -192,6 +192,29 @@ export const setProducerEventPublished = createServerFn({ method: "POST" })
       .eq("id", data.eventId)
       .eq("seller_id", seller.id);
     if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+const updateEventCoverInput = z.object({
+  eventId: z.string().uuid(),
+  coverUrl: z.string().url().nullable(),
+  previousPath: z.string().max(400).nullable().optional(),
+});
+
+export const updateProducerEventCover = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => updateEventCoverInput.parse(raw))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin, seller } = await requireProducer(context);
+    const { error } = await supabaseAdmin
+      .from("events")
+      .update({ cover_url: data.coverUrl })
+      .eq("id", data.eventId)
+      .eq("seller_id", seller.id);
+    if (error) throw new Error(error.message);
+    if (data.previousPath && data.previousPath.startsWith(`${seller.id}/`)) {
+      await supabaseAdmin.storage.from("event-covers").remove([data.previousPath]);
+    }
     return { ok: true };
   });
 

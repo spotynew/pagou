@@ -12,7 +12,15 @@ import {
   createProducerEvent,
   listProducerEvents,
   setProducerEventPublished,
+  updateProducerEventCover,
 } from "@/lib/producer.functions";
+import {
+  EventCoverUploader,
+  extractEventCoverPath,
+  type UploadedCover,
+} from "@/components/producer/EventCoverUploader";
+import { supabase } from "@/integrations/supabase/client";
+import { ImageIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/produtor/eventos")({
   component: ProducerEvents,
@@ -23,8 +31,11 @@ function ProducerEvents() {
   const loadEvents = useServerFn(listProducerEvents);
   const createEvent = useServerFn(createProducerEvent);
   const setPublished = useServerFn(setProducerEventPublished);
+  const updateCover = useServerFn(updateProducerEventCover);
   const [showForm, setShowForm] = useState(false);
-  const events = useQuery({ queryKey: ["producer-events"], queryFn: () => loadEvents() });
+  const eventsQuery = useQuery({ queryKey: ["producer-events"], queryFn: () => loadEvents() });
+  const sellerId = eventsQuery.data?.sellerId;
+  const events = eventsQuery.data?.events ?? [];
   const create = useMutation({
     mutationFn: (data: EventFormData) => createEvent({ data }),
     onSuccess: async () => {
@@ -40,6 +51,38 @@ function ProducerEvents() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["producer-events"] }),
     onError: (error: Error) => toast.error(error.message),
   });
+  const coverMutation = useMutation({
+    mutationFn: (data: {
+      eventId: string;
+      coverUrl: string | null;
+      previousPath: string | null;
+    }) => updateCover({ data }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["producer-events"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  async function handleEventCoverChange(
+    eventId: string,
+    previousUrl: string | null,
+    next: UploadedCover | null,
+  ) {
+    const previousPath = extractEventCoverPath(previousUrl);
+    try {
+      await coverMutation.mutateAsync({
+        eventId,
+        coverUrl: next?.url ?? null,
+        previousPath,
+      });
+      toast.success(next ? "Capa atualizada." : "Capa removida.");
+    } catch {
+      // If DB update failed and we just uploaded a new file, clean it up.
+      if (next?.path) {
+        await supabase.storage.from("event-covers").remove([next.path]).catch(() => {});
+      }
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -57,25 +100,47 @@ function ProducerEvents() {
       </div>
 
       {showForm && (
-        <EventForm pending={create.isPending} onSubmit={(data) => create.mutate(data)} />
+        <EventForm
+          sellerId={sellerId}
+          pending={create.isPending}
+          onSubmit={(data) => create.mutate(data)}
+        />
       )}
 
       <div className="space-y-4">
-        {events.isPending && <p className="text-sm text-muted-foreground">Carregando eventos…</p>}
-        {events.data?.length === 0 && (
+        {eventsQuery.isPending && (
+          <p className="text-sm text-muted-foreground">Carregando eventos…</p>
+        )}
+        {!eventsQuery.isPending && events.length === 0 && (
           <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             Nenhum evento cadastrado nesta conta.
           </p>
         )}
-        {events.data?.map((event) => {
+        {events.map((event) => {
           const batches = event.ticket_types.flatMap((type) => type.ticket_batches);
+          const coverValue: UploadedCover | null = event.cover_url
+            ? { url: event.cover_url, path: extractEventCoverPath(event.cover_url) ?? "" }
+            : null;
           return (
             <div
               key={event.id}
               className="rounded-2xl border border-border bg-card p-5 shadow-card"
             >
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
+              <div className="flex flex-wrap items-start gap-4">
+                <div className="h-20 w-32 flex-shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
+                  {event.cover_url ? (
+                    <img
+                      src={event.cover_url}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center text-muted-foreground">
+                      <ImageIcon className="h-6 w-6" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <h2 className="font-display text-lg font-semibold">{event.title}</h2>
                     <span className="rounded-full bg-secondary px-2 py-1 text-xs">
@@ -112,6 +177,13 @@ function ProducerEvents() {
                   </Button>
                 </div>
               </div>
+              <div className="mt-4 max-w-md">
+                <EventCoverUploader
+                  sellerId={sellerId}
+                  value={coverValue}
+                  onChange={(next) => handleEventCoverChange(event.id, event.cover_url, next)}
+                />
+              </div>
             </div>
           );
         })}
@@ -139,12 +211,15 @@ type EventFormData = {
 };
 
 function EventForm({
+  sellerId,
   pending,
   onSubmit,
 }: {
+  sellerId: string | undefined;
   pending: boolean;
   onSubmit: (data: EventFormData) => void;
 }) {
+  const [cover, setCover] = useState<UploadedCover | null>(null);
   return (
     <form
       className="grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-card md:grid-cols-2"
@@ -154,7 +229,7 @@ function EventForm({
         onSubmit({
           title: String(form.get("title")),
           description: String(form.get("description") || ""),
-          coverUrl: String(form.get("coverUrl") || ""),
+          coverUrl: cover?.url || "",
           category: String(form.get("category") || ""),
           city: String(form.get("city")),
           venue: String(form.get("venue")),
@@ -176,7 +251,17 @@ function EventForm({
         <Label htmlFor="event-description">Descrição</Label>
         <Textarea id="event-description" name="description" />
       </div>
-      <Field label="URL da capa" name="coverUrl" type="url" />
+      <div className="md:col-span-2">
+        <Label>Capa do evento</Label>
+        <EventCoverUploader
+          sellerId={sellerId}
+          value={cover}
+          onChange={setCover}
+          onDeletePrevious={(path) => {
+            void supabase.storage.from("event-covers").remove([path]);
+          }}
+        />
+      </div>
       <Field label="Data e hora" name="startsAt" type="datetime-local" required />
       <Field label="Cidade" name="city" required />
       <Field label="Local" name="venue" required />
