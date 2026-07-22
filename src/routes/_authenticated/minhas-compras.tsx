@@ -11,6 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL, formatDateTimeBR } from "@/lib/format";
 
+const PUBLIC_SITE_URL = "https://pagou.lovable.app";
+
+function ticketVerifyUrl(code: string): string {
+  const origin =
+    typeof window !== "undefined" && window.location?.origin
+      ? window.location.origin
+      : PUBLIC_SITE_URL;
+  return `${origin}/verificar-ingresso/${encodeURIComponent(code)}`;
+}
+
 export const Route = createFileRoute("/_authenticated/minhas-compras")({
   head: () => ({
     meta: [{ title: "Minhas compras — PAGOU" }, { name: "robots", content: "noindex, nofollow" }],
@@ -160,7 +170,7 @@ function MyPurchases() {
                       className="flex flex-col gap-5 rounded-3xl border border-border bg-card p-6 shadow-card sm:flex-row"
                     >
                       <div className="self-start rounded-2xl bg-white p-3">
-                        <QRCodeSVG value={ticket.code} size={120} />
+                        <QRCodeSVG value={ticketVerifyUrl(ticket.code)} size={120} />
                       </div>
                       <div>
                         <p className="text-xs uppercase tracking-widest text-muted-foreground">
