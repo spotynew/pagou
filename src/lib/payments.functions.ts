@@ -28,13 +28,46 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
 
     const { data: existing } = await supabaseAdmin
       .from("payments")
-      .select("id, provider_payment_id, status, expires_at, pix_qr_code")
+      .select("id, provider_payment_id, provider_ref, status, expires_at, pix_qr_code")
       .eq("order_id", order.id)
       .in("status", ["pending", "approved"])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (existing && (existing.status === "approved" || existing.pix_qr_code)) {
+
+    if (existing?.status === "approved") {
+      return {
+        paymentId: existing.id,
+        expiresAt: existing.expires_at,
+        pixCode: existing.pix_qr_code,
+      };
+    }
+
+    const existingProviderOrderId = [existing?.provider_ref, existing?.provider_payment_id]
+      .filter((value): value is string => Boolean(value))
+      .find((value) => /^ORD[A-Z0-9]+$/i.test(value));
+    if (existing && existingProviderOrderId) {
+      try {
+        const { syncMercadoPagoOrder } = await import("@/lib/mercadopago-sync.server");
+        const result = await syncMercadoPagoOrder({
+          supabaseAdmin,
+          providerOrderId: existingProviderOrderId,
+          source: "buyer_reconciliation",
+          actorId: userId,
+        });
+        if (result.paymentStatus === "approved") {
+          return {
+            paymentId: result.paymentId ?? existing.id,
+            expiresAt: existing.expires_at,
+            pixCode: existing.pix_qr_code,
+          };
+        }
+      } catch (syncError) {
+        console.warn("[mercadopago-buyer-reconciliation]", syncError);
+      }
+    }
+
+    if (existing?.pix_qr_code) {
       return {
         paymentId: existing.id,
         expiresAt: existing.expires_at,
@@ -66,22 +99,26 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
       throw new Error("O provedor retornou um valor diferente do pedido");
     }
 
+    const mappedStatus = mapMercadoPagoStatus(mpOrder.status);
+    const paidAt =
+      mappedStatus === "approved"
+        ? (mpOrder.last_updated_date ?? new Date().toISOString())
+        : null;
     const paymentValues = {
       order_id: order.id,
       provider: "mercadopago",
       method: "pix" as const,
       provider_payment_id: mpPayment.id,
       provider_ref: mpOrder.id,
-      status: mapMercadoPagoStatus(mpOrder.status),
+      status: mappedStatus,
       amount_cents: order.total_cents,
       pix_qr_code: mpPayment.payment_method?.qr_code ?? null,
       pix_qr_code_base64: mpPayment.payment_method?.qr_code_base64 ?? null,
       expires_at: expiresAt,
-      paid_at:
-        mpOrder.status === "processed"
-          ? (mpOrder.last_updated_date ?? new Date().toISOString())
-          : null,
-      raw_status: [mpOrder.status, mpOrder.status_detail].filter(Boolean).join(":"),
+      paid_at: paidAt,
+      raw_status: [mpOrder.status, mpOrder.status_detail, mpPayment.status]
+        .filter(Boolean)
+        .join(":"),
     };
     // O webhook pode chegar imediatamente após a resposta do Mercado Pago.
     // Consulte novamente para atualizar o registro criado por ele, evitando duplicidade.
@@ -100,6 +137,19 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
       .single();
     if (paymentError || !payment) {
       throw new Error(paymentError?.message ?? "Falha ao registrar pagamento");
+    }
+
+    if (mappedStatus === "approved") {
+      const { error: orderUpdateError } = await supabaseAdmin
+        .from("orders")
+        .update({
+          status: "paid",
+          paid_at: paidAt,
+          payment_method: "pix",
+          external_reference: mpOrder.id,
+        })
+        .eq("id", order.id);
+      if (orderUpdateError) throw new Error(orderUpdateError.message);
     }
 
     return {
