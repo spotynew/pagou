@@ -8,11 +8,11 @@ on:
 jobs:
   reconcile:
     runs-on: ubuntu-latest
+    env:
+      RECONCILIATION_SECRET: ${{ secrets.PAYMENT_RECONCILIATION_SECRET }}
     steps:
       - name: Reconciliar PIX pendentes
         if: ${{ env.RECONCILIATION_SECRET != '' }}
-        env:
-          RECONCILIATION_SECRET: ${{ secrets.PAYMENT_RECONCILIATION_SECRET }}
         run: |
           curl --fail-with-body --silent --show-error \
             --request POST \
