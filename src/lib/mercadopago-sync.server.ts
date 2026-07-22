@@ -94,7 +94,10 @@ export async function syncMercadoPagoOrder(input: SyncInput): Promise<MercadoPag
     throw new Error("O valor confirmado pelo Mercado Pago não corresponde ao pedido");
   }
 
-  const paymentStatus = mapMercadoPagoStatus(providerOrder.status);
+  const mappedOrderStatus = mapMercadoPagoStatus(providerOrder.status);
+  const mappedTransactionStatus = mapMercadoPagoStatus(providerPayment.status);
+  const paymentStatus =
+    mappedOrderStatus !== "pending" ? mappedOrderStatus : mappedTransactionStatus;
   const paidAt =
     paymentStatus === "approved"
       ? (providerOrder.last_updated_date ?? order.paid_at ?? new Date().toISOString())
@@ -166,7 +169,8 @@ export async function syncMercadoPagoOrder(input: SyncInput): Promise<MercadoPag
       source: input.source,
       provider_order_id: providerOrder.id,
       provider_payment_id: providerPayment.id,
-      provider_status: providerOrder.status,
+      provider_order_status: providerOrder.status,
+      provider_transaction_status: providerPayment.status,
       payment_status: paymentStatus,
       order_status: orderStatus,
       notification_action: input.notificationAction ?? null,
