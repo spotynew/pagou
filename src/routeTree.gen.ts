@@ -23,12 +23,14 @@ import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
 import { Route as AuthenticatedProdutorRouteImport } from './routes/_authenticated/produtor'
 import { Route as AuthenticatedMinhasComprasRouteImport } from './routes/_authenticated/minhas-compras'
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
+import { Route as AuthenticatedAdminPagamentosRouteImport } from './routes/_authenticated/admin-pagamentos'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedProdutorIndexRouteImport } from './routes/_authenticated/produtor.index'
 import { Route as AuthenticatedProdutorEventosRouteImport } from './routes/_authenticated/produtor.eventos'
 import { Route as AuthenticatedProdutorCursosRouteImport } from './routes/_authenticated/produtor.cursos'
 import { Route as AuthenticatedCheckoutOrderIdRouteImport } from './routes/_authenticated/checkout.$orderId'
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
+import { Route as ApiInternalReconcileMercadopagoRouteImport } from './routes/api/internal/reconcile/mercadopago'
 
 const VenderRoute = VenderRouteImport.update({
   id: '/vender',
@@ -100,6 +102,12 @@ const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
   path: '/checkin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminPagamentosRoute =
+  AuthenticatedAdminPagamentosRouteImport.update({
+    id: '/admin-pagamentos',
+    path: '/admin-pagamentos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -135,6 +143,12 @@ const ApiPublicWebhooksMercadopagoRoute =
     path: '/api/public/webhooks/mercadopago',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiInternalReconcileMercadopagoRoute =
+  ApiInternalReconcileMercadopagoRouteImport.update({
+    id: '/api/internal/reconcile/mercadopago',
+    path: '/api/internal/reconcile/mercadopago',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -144,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/termos': typeof TermosRoute
   '/vender': typeof VenderRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-pagamentos': typeof AuthenticatedAdminPagamentosRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/minhas-compras': typeof AuthenticatedMinhasComprasRoute
   '/produtor': typeof AuthenticatedProdutorRouteWithChildren
@@ -155,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/produtor/cursos': typeof AuthenticatedProdutorCursosRoute
   '/produtor/eventos': typeof AuthenticatedProdutorEventosRoute
   '/produtor/': typeof AuthenticatedProdutorIndexRoute
+  '/api/internal/reconcile/mercadopago': typeof ApiInternalReconcileMercadopagoRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
 export interface FileRoutesByTo {
@@ -165,6 +181,7 @@ export interface FileRoutesByTo {
   '/termos': typeof TermosRoute
   '/vender': typeof VenderRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-pagamentos': typeof AuthenticatedAdminPagamentosRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/minhas-compras': typeof AuthenticatedMinhasComprasRoute
   '/cursos/$slug': typeof CursosSlugRoute
@@ -175,6 +192,7 @@ export interface FileRoutesByTo {
   '/produtor/cursos': typeof AuthenticatedProdutorCursosRoute
   '/produtor/eventos': typeof AuthenticatedProdutorEventosRoute
   '/produtor': typeof AuthenticatedProdutorIndexRoute
+  '/api/internal/reconcile/mercadopago': typeof ApiInternalReconcileMercadopagoRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
 export interface FileRoutesById {
@@ -187,6 +205,7 @@ export interface FileRoutesById {
   '/termos': typeof TermosRoute
   '/vender': typeof VenderRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin-pagamentos': typeof AuthenticatedAdminPagamentosRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
   '/_authenticated/minhas-compras': typeof AuthenticatedMinhasComprasRoute
   '/_authenticated/produtor': typeof AuthenticatedProdutorRouteWithChildren
@@ -198,6 +217,7 @@ export interface FileRoutesById {
   '/_authenticated/produtor/cursos': typeof AuthenticatedProdutorCursosRoute
   '/_authenticated/produtor/eventos': typeof AuthenticatedProdutorEventosRoute
   '/_authenticated/produtor/': typeof AuthenticatedProdutorIndexRoute
+  '/api/internal/reconcile/mercadopago': typeof ApiInternalReconcileMercadopagoRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
 }
 export interface FileRouteTypes {
@@ -210,6 +230,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/vender'
     | '/admin'
+    | '/admin-pagamentos'
     | '/checkin'
     | '/minhas-compras'
     | '/produtor'
@@ -221,6 +242,7 @@ export interface FileRouteTypes {
     | '/produtor/cursos'
     | '/produtor/eventos'
     | '/produtor/'
+    | '/api/internal/reconcile/mercadopago'
     | '/api/public/webhooks/mercadopago'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -231,6 +253,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/vender'
     | '/admin'
+    | '/admin-pagamentos'
     | '/checkin'
     | '/minhas-compras'
     | '/cursos/$slug'
@@ -241,6 +264,7 @@ export interface FileRouteTypes {
     | '/produtor/cursos'
     | '/produtor/eventos'
     | '/produtor'
+    | '/api/internal/reconcile/mercadopago'
     | '/api/public/webhooks/mercadopago'
   id:
     | '__root__'
@@ -252,6 +276,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/vender'
     | '/_authenticated/admin'
+    | '/_authenticated/admin-pagamentos'
     | '/_authenticated/checkin'
     | '/_authenticated/minhas-compras'
     | '/_authenticated/produtor'
@@ -263,6 +288,7 @@ export interface FileRouteTypes {
     | '/_authenticated/produtor/cursos'
     | '/_authenticated/produtor/eventos'
     | '/_authenticated/produtor/'
+    | '/api/internal/reconcile/mercadopago'
     | '/api/public/webhooks/mercadopago'
   fileRoutesById: FileRoutesById
 }
@@ -278,6 +304,7 @@ export interface RootRouteChildren {
   EventosSlugRoute: typeof EventosSlugRoute
   CursosIndexRoute: typeof CursosIndexRoute
   EventosIndexRoute: typeof EventosIndexRoute
+  ApiInternalReconcileMercadopagoRoute: typeof ApiInternalReconcileMercadopagoRoute
   ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
 }
 
@@ -381,6 +408,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCheckinRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-pagamentos': {
+      id: '/_authenticated/admin-pagamentos'
+      path: '/admin-pagamentos'
+      fullPath: '/admin-pagamentos'
+      preLoaderRoute: typeof AuthenticatedAdminPagamentosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -423,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksMercadopagoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/reconcile/mercadopago': {
+      id: '/api/internal/reconcile/mercadopago'
+      path: '/api/internal/reconcile/mercadopago'
+      fullPath: '/api/internal/reconcile/mercadopago'
+      preLoaderRoute: typeof ApiInternalReconcileMercadopagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -445,6 +486,7 @@ const AuthenticatedProdutorRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminPagamentosRoute: typeof AuthenticatedAdminPagamentosRoute
   AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
   AuthenticatedMinhasComprasRoute: typeof AuthenticatedMinhasComprasRoute
   AuthenticatedProdutorRoute: typeof AuthenticatedProdutorRouteWithChildren
@@ -453,6 +495,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminPagamentosRoute: AuthenticatedAdminPagamentosRoute,
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
   AuthenticatedMinhasComprasRoute: AuthenticatedMinhasComprasRoute,
   AuthenticatedProdutorRoute: AuthenticatedProdutorRouteWithChildren,
@@ -474,6 +517,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventosSlugRoute: EventosSlugRoute,
   CursosIndexRoute: CursosIndexRoute,
   EventosIndexRoute: EventosIndexRoute,
+  ApiInternalReconcileMercadopagoRoute: ApiInternalReconcileMercadopagoRoute,
   ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
