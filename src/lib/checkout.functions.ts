@@ -1,19 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { computeOrderFees, PLATFORM_FEE_BPS } from "@/lib/pricing";
 import { z } from "zod";
 
 const RESERVATION_MINUTES = 30;
-const PLATFORM_FEE_BPS = 1000; // 10.00%
-const CARD_FEE_BPS = 399; // 3.99%
 const MAX_QTY_HARD_CAP = 10;
 const BUYER_RECONCILIATION_INTERVAL_MS = 8_000;
-
-function computeFees(subtotalCents: number, discountCents: number, method: "pix" | "card") {
-  const base = Math.max(0, subtotalCents - discountCents);
-  const platformFee = Math.round((base * PLATFORM_FEE_BPS) / 10000);
-  const paymentFee = method === "card" ? Math.round((base * CARD_FEE_BPS) / 10000) : 0;
-  return { platformFee, paymentFee, total: base + platformFee + paymentFee };
-}
 
 const createDraftInput = z.object({
   kind: z.enum(["event", "course"]),
@@ -139,7 +131,7 @@ export const confirmDraftOrder = createServerFn({ method: "POST" })
     if (order.expires_at && new Date(order.expires_at) < new Date())
       throw new Error("Pedido expirado — inicie uma nova compra");
 
-    const { platformFee, paymentFee, total } = computeFees(
+    const { platformFeeCents, paymentFeeCents, totalCents } = computeOrderFees(
       order.subtotal_cents,
       order.discount_cents,
       data.paymentMethod,
@@ -149,10 +141,10 @@ export const confirmDraftOrder = createServerFn({ method: "POST" })
       .from("orders")
       .update({
         payment_method: data.paymentMethod === "card" ? "credit_card" : "pix",
-        platform_fee_cents: platformFee,
-        payment_fee_cents: paymentFee,
-        fee_cents: platformFee,
-        total_cents: total,
+        platform_fee_cents: platformFeeCents,
+        payment_fee_cents: paymentFeeCents,
+        fee_cents: platformFeeCents,
+        total_cents: totalCents,
       })
       .eq("id", order.id);
     if (updateError) throw new Error(updateError.message);
