@@ -93,7 +93,6 @@ export async function createPixOrder(input: {
   const nameParts = input.payerName?.trim().split(/\s+/).filter(Boolean) ?? [];
   const payer: Record<string, unknown> = isTestMode()
     ? {
-        // Valores exigidos pelo cenário oficial de teste PIX da API de Orders.
         email: "test_user_br@testuser.com",
         first_name: "APRO",
       }
@@ -116,13 +115,14 @@ export async function createPixOrder(input: {
       processing_mode: "automatic",
       external_reference: input.orderId,
       total_amount: amount,
-      description: input.description.slice(0, 250),
+      description: input.description.slice(0, 150),
       payer,
       transactions: {
         payments: [
           {
             amount,
             payment_method: { id: "pix", type: "bank_transfer" },
+            expiration_time: "PT30M",
           },
         ],
       },
