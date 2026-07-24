@@ -16,7 +16,7 @@ async function requireProducer(context: AuthContext) {
 
   const { data: seller, error } = await supabaseAdmin
     .from("seller_accounts")
-    .select("id, display_name, legal_name, status")
+    .select("id, display_name, legal_name, document, avatar_url, bio, status")
     .eq("user_id", context.userId)
     .order("created_at", { ascending: true })
     .limit(1)
@@ -39,6 +39,7 @@ function slugify(value: string) {
 }
 
 const optionalUrl = z.union([z.string().url(), z.literal("")]).optional();
+const optionalDateTime = z.union([z.string().datetime(), z.literal("")]).optional();
 
 export const getProducerDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -96,7 +97,7 @@ export const listProducerEvents = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("events")
       .select(
-        "id, title, slug, cover_url, city, venue, starts_at, published, sales_count, ticket_types(id, name, sector, ticket_batches(id, name, price_cents, quantity_total, quantity_sold, active, max_per_order))",
+        "id, title, slug, description, cover_url, category, city, venue, address, starts_at, ends_at, age_rating, published, sales_count, ticket_types(id, name, sector, description, ticket_batches(id, name, price_cents, quantity_total, quantity_sold, active, max_per_order, starts_at, ends_at))",
       )
       .eq("seller_id", seller.id)
       .order("created_at", { ascending: false });
@@ -104,23 +105,49 @@ export const listProducerEvents = createServerFn({ method: "GET" })
     return { sellerId: seller.id, events: data ?? [] };
   });
 
-const createEventInput = z.object({
-  title: z.string().trim().min(3).max(120),
-  description: z.string().trim().max(5000).optional(),
-  coverUrl: optionalUrl,
-  category: z.string().trim().max(80).optional(),
-  city: z.string().trim().min(2).max(100),
-  venue: z.string().trim().min(2).max(160),
-  address: z.string().trim().min(3).max(240),
-  startsAt: z.string().datetime(),
-  ageRating: z.string().trim().max(30).optional(),
-  ticketName: z.string().trim().min(2).max(80),
-  sector: z.string().trim().max(80).optional(),
-  batchName: z.string().trim().min(2).max(80),
-  priceCents: z.number().int().min(100).max(100_000_000),
-  quantityTotal: z.number().int().min(1).max(100_000),
-  maxPerOrder: z.number().int().min(1).max(10),
-});
+const createEventInput = z
+  .object({
+    title: z.string().trim().min(5).max(120),
+    description: z.string().trim().min(80).max(10_000),
+    coverUrl: optionalUrl,
+    category: z.string().trim().max(80).optional(),
+    city: z.string().trim().min(2).max(100),
+    venue: z.string().trim().min(2).max(160),
+    address: z.string().trim().min(5).max(240),
+    startsAt: z.string().datetime(),
+    endsAt: optionalDateTime,
+    ageRating: z.string().trim().max(30).optional(),
+    ticketName: z.string().trim().min(2).max(80),
+    sector: z.string().trim().max(80).optional(),
+    ticketDescription: z.string().trim().min(10).max(1000),
+    batchName: z.string().trim().min(2).max(80),
+    priceCents: z.number().int().min(100).max(100_000_000),
+    quantityTotal: z.number().int().min(1).max(100_000),
+    maxPerOrder: z.number().int().min(1).max(10),
+    salesStartsAt: optionalDateTime,
+    salesEndsAt: optionalDateTime,
+  })
+  .superRefine((input, ctx) => {
+    const startsAt = new Date(input.startsAt).getTime();
+    if (input.endsAt && new Date(input.endsAt).getTime() <= startsAt) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["endsAt"],
+        message: "O encerramento do evento deve ser depois do início.",
+      });
+    }
+    if (
+      input.salesStartsAt &&
+      input.salesEndsAt &&
+      new Date(input.salesEndsAt).getTime() <= new Date(input.salesStartsAt).getTime()
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["salesEndsAt"],
+        message: "O fim das vendas deve ser depois do início das vendas.",
+      });
+    }
+  });
 
 export const createProducerEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -133,13 +160,14 @@ export const createProducerEvent = createServerFn({ method: "POST" })
         seller_id: seller.id,
         title: data.title,
         slug: slugify(data.title),
-        description: data.description || null,
+        description: data.description,
         cover_url: data.coverUrl || null,
         category: data.category || null,
         city: data.city,
         venue: data.venue,
         address: data.address,
         starts_at: data.startsAt,
+        ends_at: data.endsAt || null,
         age_rating: data.ageRating || null,
         producer_name: seller.display_name,
         published: false,
@@ -156,6 +184,7 @@ export const createProducerEvent = createServerFn({ method: "POST" })
         event_id: event.id,
         name: data.ticketName,
         sector: data.sector || null,
+        description: data.ticketDescription,
       })
       .select("id")
       .single();
@@ -170,6 +199,8 @@ export const createProducerEvent = createServerFn({ method: "POST" })
       price_cents: data.priceCents,
       quantity_total: data.quantityTotal,
       max_per_order: data.maxPerOrder,
+      starts_at: data.salesStartsAt || null,
+      ends_at: data.salesEndsAt || null,
       active: true,
     });
     if (batchError) {
@@ -186,6 +217,34 @@ export const setProducerEventPublished = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin, seller } = await requireProducer(context);
+
+    if (data.published) {
+      const { data: event, error: eventError } = await supabaseAdmin
+        .from("events")
+        .select(
+          "id, title, description, cover_url, city, venue, address, starts_at, ticket_types(id, ticket_batches(id, active, quantity_total, quantity_sold))",
+        )
+        .eq("id", data.eventId)
+        .eq("seller_id", seller.id)
+        .maybeSingle();
+      if (eventError || !event) throw new Error("Evento não encontrado.");
+
+      const missing: string[] = [];
+      if (!event.cover_url) missing.push("capa do evento");
+      if ((event.description?.trim().length ?? 0) < 80) missing.push("descrição completa");
+      if (!event.city || !event.venue || !event.address) missing.push("local e endereço");
+      if (!seller.legal_name || !seller.document) missing.push("razão social e CPF/CNPJ do produtor");
+
+      const saleableBatch = event.ticket_types
+        .flatMap((type) => type.ticket_batches)
+        .some((batch) => batch.active && batch.quantity_total > batch.quantity_sold);
+      if (!saleableBatch) missing.push("lote ativo com ingressos disponíveis");
+
+      if (missing.length) {
+        throw new Error(`Antes de publicar, complete: ${missing.join(", ")}.`);
+      }
+    }
+
     const { error } = await supabaseAdmin
       .from("events")
       .update({ published: data.published })
