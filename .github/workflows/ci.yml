@@ -41,6 +41,7 @@ jobs:
           npm exec eslint -- \
             src/lib/checkout.functions.ts \
             src/lib/mercadopago.server.ts \
+            src/lib/pricing.ts \
             src/lib/producer.functions.ts \
             src/lib/public-event.functions.ts \
             src/lib/queries.ts \
