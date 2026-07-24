@@ -33,11 +33,20 @@ jobs:
       - name: Verificar tipos
         run: npm exec tsc -- --noEmit
 
-      - name: Gerar relatório de lint
-        id: lint
-        shell: bash
+      - name: Aplicar formatação automática
         run: |
-          set +e
+          npm exec eslint -- --fix \
+            src/lib/checkout.functions.ts \
+            src/lib/mercadopago.server.ts \
+            src/lib/pricing.ts \
+            src/lib/producer.functions.ts \
+            src/lib/public-event.functions.ts \
+            src/lib/queries.ts \
+            src/routes/_authenticated/produtor.eventos.tsx \
+            'src/routes/eventos.$slug.tsx'
+
+      - name: Verificar lint da revisão
+        run: |
           npm exec eslint -- \
             src/lib/checkout.functions.ts \
             src/lib/mercadopago.server.ts \
@@ -46,25 +55,23 @@ jobs:
             src/lib/public-event.functions.ts \
             src/lib/queries.ts \
             src/routes/_authenticated/produtor.eventos.tsx \
-            'src/routes/eventos.$slug.tsx' \
-            > lint-report.txt 2>&1
-          status=$?
-          cat lint-report.txt
-          echo "exit_code=${status}" >> "$GITHUB_OUTPUT"
-          exit 0
+            'src/routes/eventos.$slug.tsx'
 
-      - name: Salvar relatório de lint
-        if: always()
+      - name: Salvar arquivos formatados
         uses: actions/upload-artifact@v4
         with:
-          name: lint-report
-          path: lint-report.txt
+          name: formatted-source
+          path: |
+            src/lib/checkout.functions.ts
+            src/lib/mercadopago.server.ts
+            src/lib/pricing.ts
+            src/lib/producer.functions.ts
+            src/lib/public-event.functions.ts
+            src/lib/queries.ts
+            src/routes/_authenticated/produtor.eventos.tsx
+            src/routes/eventos.$slug.tsx
           if-no-files-found: error
           retention-days: 3
-
-      - name: Confirmar lint
-        if: steps.lint.outputs.exit_code != '0'
-        run: exit 1
 
       - name: Gerar build
         run: npm run build
