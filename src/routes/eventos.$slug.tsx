@@ -295,7 +295,9 @@ function EventDetail() {
                 {event.description}
               </p>
             ) : (
-              <p className="text-muted-foreground">O organizador ainda não adicionou a descrição.</p>
+              <p className="text-muted-foreground">
+                O organizador ainda não adicionou a descrição.
+              </p>
             )}
           </Section>
 
@@ -361,8 +363,8 @@ function EventDetail() {
               <div>
                 <p className="font-semibold">{event.producer_name || "Organizador do evento"}</p>
                 <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-primary" /> Produtor aprovado para publicar na
-                  PAGOU
+                  <CheckCircle2 className="h-4 w-4 text-primary" /> Produtor aprovado para publicar
+                  na PAGOU
                 </p>
               </div>
             </div>
@@ -409,7 +411,9 @@ function EventDetail() {
                           {[batch.sector, batch.name].filter(Boolean).join(" · ")}
                         </p>
                       </div>
-                      <p className="font-display text-lg font-bold">{formatBRL(batch.price_cents)}</p>
+                      <p className="font-display text-lg font-bold">
+                        {formatBRL(batch.price_cents)}
+                      </p>
                     </div>
                     {batch.ticketDescription && (
                       <p className="mt-2 text-xs leading-5 text-muted-foreground">
@@ -509,7 +513,9 @@ function InfoCard({
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {title}
+        </p>
         <p className="mt-1 font-medium leading-6">{text}</p>
       </div>
     </div>

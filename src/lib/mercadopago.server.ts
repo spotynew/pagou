@@ -74,8 +74,7 @@ export function getOrderPayment(order: MercadoPagoOrder) {
   const payments = order.transactions?.payments ?? [];
   const payment =
     payments.find(
-      (item) =>
-        item.payment_method?.id === "pix" || item.payment_method?.type === "bank_transfer",
+      (item) => item.payment_method?.id === "pix" || item.payment_method?.type === "bank_transfer",
     ) ?? payments[0];
   if (!payment) throw new Error("Mercado Pago não retornou a transação PIX");
   return payment;

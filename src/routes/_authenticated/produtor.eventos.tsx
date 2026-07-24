@@ -52,11 +52,8 @@ function ProducerEvents() {
     onError: (error: Error) => toast.error(error.message),
   });
   const coverMutation = useMutation({
-    mutationFn: (data: {
-      eventId: string;
-      coverUrl: string | null;
-      previousPath: string | null;
-    }) => updateCover({ data }),
+    mutationFn: (data: { eventId: string; coverUrl: string | null; previousPath: string | null }) =>
+      updateCover({ data }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["producer-events"] });
     },
@@ -78,7 +75,10 @@ function ProducerEvents() {
       toast.success(next ? "Capa atualizada." : "Capa removida.");
     } catch {
       if (next?.path) {
-        await supabase.storage.from("event-covers").remove([next.path]).catch(() => {});
+        await supabase.storage
+          .from("event-covers")
+          .remove([next.path])
+          .catch(() => {});
       }
     }
   }
@@ -136,13 +136,11 @@ function ProducerEvents() {
             : null;
           const pageReady = Boolean(
             event.cover_url &&
-              event.address &&
-              event.venue &&
-              event.city &&
-              (event.description?.trim().length ?? 0) >= 80 &&
-              batches.some(
-                (batch) => batch.active && batch.quantity_total > batch.quantity_sold,
-              ),
+            event.address &&
+            event.venue &&
+            event.city &&
+            (event.description?.trim().length ?? 0) >= 80 &&
+            batches.some((batch) => batch.active && batch.quantity_total > batch.quantity_sold),
           );
           return (
             <div

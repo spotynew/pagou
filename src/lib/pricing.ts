@@ -8,8 +8,7 @@ export function computeOrderFees(
 ) {
   const baseCents = Math.max(0, subtotalCents - discountCents);
   const platformFeeCents = Math.round((baseCents * PLATFORM_FEE_BPS) / 10_000);
-  const paymentFeeCents =
-    method === "card" ? Math.round((baseCents * CARD_FEE_BPS) / 10_000) : 0;
+  const paymentFeeCents = method === "card" ? Math.round((baseCents * CARD_FEE_BPS) / 10_000) : 0;
 
   return {
     baseCents,

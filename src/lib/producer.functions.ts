@@ -233,7 +233,8 @@ export const setProducerEventPublished = createServerFn({ method: "POST" })
       if (!event.cover_url) missing.push("capa do evento");
       if ((event.description?.trim().length ?? 0) < 80) missing.push("descrição completa");
       if (!event.city || !event.venue || !event.address) missing.push("local e endereço");
-      if (!seller.legal_name || !seller.document) missing.push("razão social e CPF/CNPJ do produtor");
+      if (!seller.legal_name || !seller.document)
+        missing.push("razão social e CPF/CNPJ do produtor");
 
       const saleableBatch = event.ticket_types
         .flatMap((type) => type.ticket_batches)

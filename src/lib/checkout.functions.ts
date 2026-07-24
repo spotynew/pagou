@@ -82,10 +82,10 @@ export const getDraftOrder = createServerFn({ method: "GET" })
 
     const shouldReconcile = Boolean(
       snapshot.order.status === "pending" &&
-        snapshot.payment?.status === "pending" &&
-        snapshot.payment.provider_ref?.startsWith("ORD") &&
-        Date.now() - new Date(snapshot.payment.updated_at).getTime() >=
-          BUYER_RECONCILIATION_INTERVAL_MS,
+      snapshot.payment?.status === "pending" &&
+      snapshot.payment.provider_ref?.startsWith("ORD") &&
+      Date.now() - new Date(snapshot.payment.updated_at).getTime() >=
+        BUYER_RECONCILIATION_INTERVAL_MS,
     );
 
     if (shouldReconcile && snapshot.payment?.provider_ref) {
