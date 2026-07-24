@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { createDraftOrder } from "@/lib/checkout.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { eventBySlugQuery } from "@/lib/queries";
+import { computeOrderFees } from "@/lib/pricing";
 import { SiteShell } from "@/components/site/SiteShell";
 import { DemoNotice } from "@/components/site/DemoNotice";
 import { Button } from "@/components/ui/button";
@@ -28,8 +29,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-
-const PLATFORM_FEE_BPS = 1000;
 
 export const Route = createFileRoute("/eventos/$slug")({
   loader: async ({ context, params }) => {
@@ -154,8 +153,11 @@ function EventDetail() {
   }, [maxAllowed, selectedBatchId]);
 
   const subtotalCents = (selectedBatch?.price_cents ?? 0) * qty;
-  const serviceFeeCents = Math.round((subtotalCents * PLATFORM_FEE_BPS) / 10_000);
-  const totalCents = subtotalCents + serviceFeeCents;
+  const { platformFeeCents: serviceFeeCents, totalCents } = computeOrderFees(
+    subtotalCents,
+    0,
+    "pix",
+  );
 
   const createDraft = useServerFn(createDraftOrder);
   const startCheckout = useMutation({
