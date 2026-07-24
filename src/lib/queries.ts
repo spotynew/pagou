@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getPublicEventBySlug } from "@/lib/public-event.functions";
 
 export const featuredEventsQuery = queryOptions({
   queryKey: ["events", "featured"],
@@ -30,25 +31,7 @@ export const featuredCoursesQuery = queryOptions({
 export function eventBySlugQuery(slug: string) {
   return queryOptions({
     queryKey: ["event", slug],
-    queryFn: async () => {
-      const { data: event, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("slug", slug)
-        .eq("published", true)
-        .maybeSingle();
-      if (error) throw error;
-      if (!event) return null;
-      const { data: types, error: typesError } = await supabase
-        .from("ticket_types")
-        .select(
-          "id, name, sector, description, sort_order, ticket_batches(id, name, price_cents, quantity_total, quantity_sold, active, max_per_order, starts_at, ends_at, sort_order)",
-        )
-        .eq("event_id", event.id)
-        .order("sort_order");
-      if (typesError) throw typesError;
-      return { event, ticketTypes: types ?? [] };
-    },
+    queryFn: () => getPublicEventBySlug({ data: { slug } }),
   });
 }
 
