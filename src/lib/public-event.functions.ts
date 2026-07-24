@@ -53,5 +53,21 @@ export const getPublicEventBySlug = createServerFn({ method: "GET" })
         }
       : null;
 
-    return { event, ticketTypes: ticketTypes ?? [], organizer };
+    const producerIdentification = organizer
+      ? [
+          organizer.displayName,
+          organizer.legalName && organizer.legalName !== organizer.displayName
+            ? organizer.legalName
+            : null,
+          organizer.documentLabel,
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : event.producer_name;
+
+    return {
+      event: { ...event, producer_name: producerIdentification },
+      ticketTypes: ticketTypes ?? [],
+      organizer,
+    };
   });
