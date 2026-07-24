@@ -39,11 +39,14 @@ export function eventBySlugQuery(slug: string) {
         .maybeSingle();
       if (error) throw error;
       if (!event) return null;
-      const { data: types } = await supabase
+      const { data: types, error: typesError } = await supabase
         .from("ticket_types")
-        .select("id, name, sector, description, sort_order, ticket_batches(id, name, price_cents, quantity_total, quantity_sold, active, sort_order)")
+        .select(
+          "id, name, sector, description, sort_order, ticket_batches(id, name, price_cents, quantity_total, quantity_sold, active, max_per_order, starts_at, ends_at, sort_order)",
+        )
         .eq("event_id", event.id)
         .order("sort_order");
+      if (typesError) throw typesError;
       return { event, ticketTypes: types ?? [] };
     },
   });
