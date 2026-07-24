@@ -16,7 +16,9 @@ export const getPublicEventBySlug = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: event, error } = await supabaseAdmin
       .from("events")
-      .select("*")
+      .select(
+        "id, seller_id, title, slug, description, cover_url, category, city, venue, address, starts_at, ends_at, age_rating, producer_name",
+      )
       .eq("slug", data.slug)
       .eq("published", true)
       .maybeSingle();
