@@ -1,0 +1,49 @@
+name: Validar aplicação
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      SUPABASE_SERVICE_ROLE_KEY: sb_secret_ci_placeholder
+      MERCADO_PAGO_ACCESS_TOKEN: APP_USR-ci-placeholder
+      MERCADO_PAGO_WEBHOOK_SECRET: ci-placeholder
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
+          persist-credentials: false
+
+      - name: Instalar dependências
+        run: npm install --legacy-peer-deps --no-audit --no-fund --loglevel=error
+
+      - name: Verificar tipos
+        run: npm exec tsc -- --noEmit
+
+      - name: Verificar lint da revisão
+        run: |
+          npm exec eslint -- \
+            src/lib/checkout.functions.ts \
+            src/lib/mercadopago.server.ts \
+            src/lib/pricing.ts \
+            src/lib/producer.functions.ts \
+            src/lib/public-event.functions.ts \
+            src/lib/queries.ts \
+            src/routes/_authenticated/produtor.eventos.tsx \
+            'src/routes/eventos.$slug.tsx'
+
+      - name: Gerar build
+        run: npm run build

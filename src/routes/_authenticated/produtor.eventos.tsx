@@ -20,7 +20,7 @@ import {
   type UploadedCover,
 } from "@/components/producer/EventCoverUploader";
 import { supabase } from "@/integrations/supabase/client";
-import { ImageIcon } from "lucide-react";
+import { CheckCircle2, CircleAlert, ImageIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/produtor/eventos")({
   component: ProducerEvents,
@@ -52,11 +52,8 @@ function ProducerEvents() {
     onError: (error: Error) => toast.error(error.message),
   });
   const coverMutation = useMutation({
-    mutationFn: (data: {
-      eventId: string;
-      coverUrl: string | null;
-      previousPath: string | null;
-    }) => updateCover({ data }),
+    mutationFn: (data: { eventId: string; coverUrl: string | null; previousPath: string | null }) =>
+      updateCover({ data }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["producer-events"] });
     },
@@ -77,9 +74,11 @@ function ProducerEvents() {
       });
       toast.success(next ? "Capa atualizada." : "Capa removida.");
     } catch {
-      // If DB update failed and we just uploaded a new file, clean it up.
       if (next?.path) {
-        await supabase.storage.from("event-covers").remove([next.path]).catch(() => {});
+        await supabase.storage
+          .from("event-covers")
+          .remove([next.path])
+          .catch(() => {});
       }
     }
   }
@@ -91,12 +90,26 @@ function ProducerEvents() {
           <p className="text-xs font-semibold uppercase tracking-widest text-primary">Catálogo</p>
           <h1 className="font-display text-3xl font-bold">Eventos</h1>
           <p className="text-sm text-muted-foreground">
-            Crie o evento, o ingresso e o primeiro lote.
+            Cadastre uma página completa, transparente e pronta para vender.
           </p>
         </div>
         <Button onClick={() => setShowForm((value) => !value)}>
           {showForm ? "Fechar formulário" : "Novo evento"}
         </Button>
+      </div>
+
+      <div className="rounded-2xl border border-primary/25 bg-primary/5 p-5">
+        <div className="flex gap-3">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 flex-none text-primary" />
+          <div>
+            <p className="font-semibold">Padrão mínimo para publicação</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Capa profissional, descrição com pelo menos 80 caracteres, endereço completo, dados
+              verificados do produtor e um lote ativo. Isso reduz dúvidas e aumenta a confiança do
+              comprador.
+            </p>
+          </div>
+        </div>
       </div>
 
       {showForm && (
@@ -121,6 +134,14 @@ function ProducerEvents() {
           const coverValue: UploadedCover | null = event.cover_url
             ? { url: event.cover_url, path: extractEventCoverPath(event.cover_url) ?? "" }
             : null;
+          const pageReady = Boolean(
+            event.cover_url &&
+            event.address &&
+            event.venue &&
+            event.city &&
+            (event.description?.trim().length ?? 0) >= 80 &&
+            batches.some((batch) => batch.active && batch.quantity_total > batch.quantity_sold),
+          );
           return (
             <div
               key={event.id}
@@ -131,7 +152,7 @@ function ProducerEvents() {
                   {event.cover_url ? (
                     <img
                       src={event.cover_url}
-                      alt=""
+                      alt={`Capa de ${event.title}`}
                       className="h-full w-full object-cover"
                     />
                   ) : (
@@ -141,10 +162,25 @@ function ProducerEvents() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <h2 className="font-display text-lg font-semibold">{event.title}</h2>
                     <span className="rounded-full bg-secondary px-2 py-1 text-xs">
                       {event.published ? "Publicado" : "Rascunho"}
+                    </span>
+                    <span
+                      className={
+                        "inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs " +
+                        (pageReady
+                          ? "bg-primary/10 text-primary"
+                          : "bg-amber-500/10 text-amber-700 dark:text-amber-300")
+                      }
+                    >
+                      {pageReady ? (
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      ) : (
+                        <CircleAlert className="h-3.5 w-3.5" />
+                      )}
+                      {pageReady ? "Página completa" : "Revisão necessária"}
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -194,20 +230,24 @@ function ProducerEvents() {
 
 type EventFormData = {
   title: string;
-  description?: string;
+  description: string;
   coverUrl?: string;
   category?: string;
   city: string;
   venue: string;
   address: string;
   startsAt: string;
+  endsAt?: string;
   ageRating?: string;
   ticketName: string;
   sector?: string;
+  ticketDescription: string;
   batchName: string;
   priceCents: number;
   quantityTotal: number;
   maxPerOrder: number;
+  salesStartsAt?: string;
+  salesEndsAt?: string;
 };
 
 function EventForm({
@@ -220,6 +260,12 @@ function EventForm({
   onSubmit: (data: EventFormData) => void;
 }) {
   const [cover, setCover] = useState<UploadedCover | null>(null);
+
+  const toOptionalIso = (form: FormData, name: string) => {
+    const value = String(form.get(name) || "").trim();
+    return value ? new Date(value).toISOString() : undefined;
+  };
+
   return (
     <form
       className="grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-card md:grid-cols-2"
@@ -228,28 +274,46 @@ function EventForm({
         const form = new FormData(event.currentTarget);
         onSubmit({
           title: String(form.get("title")),
-          description: String(form.get("description") || ""),
+          description: String(form.get("description")),
           coverUrl: cover?.url || "",
           category: String(form.get("category") || ""),
           city: String(form.get("city")),
           venue: String(form.get("venue")),
           address: String(form.get("address")),
           startsAt: new Date(String(form.get("startsAt"))).toISOString(),
+          endsAt: toOptionalIso(form, "endsAt"),
           ageRating: String(form.get("ageRating") || ""),
           ticketName: String(form.get("ticketName")),
           sector: String(form.get("sector") || ""),
+          ticketDescription: String(form.get("ticketDescription")),
           batchName: String(form.get("batchName")),
           priceCents: Math.round(Number(form.get("price")) * 100),
           quantityTotal: Number(form.get("quantityTotal")),
           maxPerOrder: Number(form.get("maxPerOrder")),
+          salesStartsAt: toOptionalIso(form, "salesStartsAt"),
+          salesEndsAt: toOptionalIso(form, "salesEndsAt"),
         });
       }}
     >
-      <Field label="Nome do evento" name="title" required />
+      <div className="md:col-span-2">
+        <p className="font-display text-xl font-semibold">Informações do evento</p>
+        <p className="text-sm text-muted-foreground">
+          Estes dados aparecem na página pública e precisam transmitir segurança.
+        </p>
+      </div>
+      <Field label="Nome do evento" name="title" minLength={5} required />
       <Field label="Categoria" name="category" placeholder="Show, teatro, congresso…" />
       <div className="md:col-span-2">
-        <Label htmlFor="event-description">Descrição</Label>
-        <Textarea id="event-description" name="description" />
+        <Label htmlFor="event-description">Descrição completa</Label>
+        <Textarea
+          id="event-description"
+          name="description"
+          minLength={80}
+          required
+          rows={8}
+          placeholder="Explique o que vai acontecer, atrações, horários, experiência, regras importantes e o que o ingresso inclui."
+        />
+        <p className="mt-1 text-xs text-muted-foreground">Mínimo de 80 caracteres.</p>
       </div>
       <div className="md:col-span-2">
         <Label>Capa do evento</Label>
@@ -261,16 +325,44 @@ function EventForm({
             void supabase.storage.from("event-covers").remove([path]);
           }}
         />
+        <p className="mt-1 text-xs text-muted-foreground">
+          Pode salvar o rascunho sem imagem, mas a capa será obrigatória para publicar.
+        </p>
       </div>
-      <Field label="Data e hora" name="startsAt" type="datetime-local" required />
+      <Field label="Início" name="startsAt" type="datetime-local" required />
+      <Field label="Encerramento" name="endsAt" type="datetime-local" />
       <Field label="Cidade" name="city" required />
       <Field label="Local" name="venue" required />
       <div className="md:col-span-2">
-        <Field label="Endereço" name="address" required />
+        <Field
+          label="Endereço completo"
+          name="address"
+          placeholder="Rua, número, bairro e referência"
+          minLength={5}
+          required
+        />
       </div>
       <Field label="Classificação etária" name="ageRating" placeholder="Livre, 18 anos…" />
+
+      <div className="mt-4 border-t border-border pt-5 md:col-span-2">
+        <p className="font-display text-xl font-semibold">Ingresso e primeiro lote</p>
+        <p className="text-sm text-muted-foreground">
+          Explique exatamente o que o comprador recebe.
+        </p>
+      </div>
       <Field label="Tipo do ingresso" name="ticketName" defaultValue="Ingresso" required />
       <Field label="Setor" name="sector" placeholder="Pista, plateia, VIP…" />
+      <div className="md:col-span-2">
+        <Label htmlFor="event-ticket-description">Descrição do ingresso</Label>
+        <Textarea
+          id="event-ticket-description"
+          name="ticketDescription"
+          minLength={10}
+          required
+          rows={3}
+          placeholder="Ex.: acesso à pista comum, entrada única e apresentação do QR Code na portaria."
+        />
+      </div>
       <Field label="Nome do lote" name="batchName" defaultValue="1º lote" required />
       <Field label="Preço (R$)" name="price" type="number" min="1" step="0.01" required />
       <Field
@@ -290,6 +382,8 @@ function EventForm({
         defaultValue="8"
         required
       />
+      <Field label="Início das vendas" name="salesStartsAt" type="datetime-local" />
+      <Field label="Fim das vendas" name="salesEndsAt" type="datetime-local" />
       <div className="md:col-span-2">
         <Button disabled={pending}>{pending ? "Criando…" : "Criar evento como rascunho"}</Button>
       </div>
