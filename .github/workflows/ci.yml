@@ -27,8 +27,13 @@ jobs:
           show-progress: false
           persist-credentials: false
 
+      - name: Configurar Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Instalar dependências
-        run: npm install --legacy-peer-deps --no-audit --no-fund --loglevel=error
+        run: npm ci --legacy-peer-deps --no-audit --no-fund --loglevel=error
 
       - name: Verificar tipos
         run: npm exec tsc -- --noEmit
