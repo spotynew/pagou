@@ -9,7 +9,11 @@ export const featuredEventsQuery = queryOptions({
       .select("id, slug, title, cover_url, city, venue, starts_at, producer_name, category, featured")
       .eq("published", true)
       .order("starts_at", { ascending: true });
-    if (error) throw error;
+    if (error) {
+      // Keep the home page usable when the backend is unreachable.
+      console.error(error);
+      return [];
+    }
     return data ?? [];
   },
 });
@@ -22,7 +26,11 @@ export const featuredCoursesQuery = queryOptions({
       .select("id, slug, title, cover_url, category, instructor_name, duration_hours, price_cents, producer_name, featured")
       .eq("published", true)
       .order("featured", { ascending: false });
-    if (error) throw error;
+    if (error) {
+      // Keep the home page usable when the backend is unreachable.
+      console.error(error);
+      return [];
+    }
     return data ?? [];
   },
 });
