@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/checkin")({
 
 function CheckinRoute() {
   return (
-    <RoleGate allowed={["checkin_staff", "admin"]}>
+    <RoleGate allowed={["checkin_staff", "producer", "admin"]}>
       <CheckinPage />
     </RoleGate>
   );

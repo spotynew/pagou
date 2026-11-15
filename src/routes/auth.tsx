@@ -10,6 +10,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/site/Logo";
 import { ShieldCheck } from "lucide-react";
+import { safeAuthRedirect } from "@/lib/auth-redirect";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -26,17 +27,14 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   // Apenas caminhos internos (mesma origem) — nunca URLs externas.
-  const safeRedirect =
-    search.redirect && search.redirect.startsWith("/") && !search.redirect.startsWith("//")
-      ? search.redirect
-      : null;
+  const safeRedirect = safeAuthRedirect(search.redirect);
 
   function goAfterAuth() {
     if (safeRedirect) {
-      window.location.assign(safeRedirect);
+      navigate({ href: safeRedirect, replace: true });
       return;
     }
-    navigate({ to: "/minhas-compras" });
+    navigate({ to: "/minhas-compras", replace: true });
   }
 
   async function signIn(e: React.FormEvent<HTMLFormElement>) {

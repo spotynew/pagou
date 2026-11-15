@@ -14,7 +14,15 @@ import { DemoNotice } from "@/components/site/DemoNotice";
 
 export const Route = createFileRoute("/")({
   head: () => ({
-    meta: [{ property: "og:url", content: "https://pagou.lovable.app/" }],
+    meta: [
+      { title: "PAGOU — Eventos, cursos e ingressos digitais" },
+      { name: "description", content: "Encontre eventos e cursos, emita ingressos digitais e use QR Code para check-in." },
+      { property: "og:title", content: "PAGOU — Comprou. Pagou. Aproveitou." },
+      { property: "og:description", content: "Eventos, cursos e ingressos digitais em um só lugar." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:url", content: "https://pagou.lovable.app/" },
+    ],
     links: [{ rel: "canonical", href: "https://pagou.lovable.app/" }],
   }),
   loader: async ({ context }) => {
@@ -64,7 +72,7 @@ function Home() {
             </div>
             <div className="mt-10 grid grid-cols-3 gap-4 text-sm text-ink-foreground/70">
               <Trust icon={<ShieldCheck className="h-5 w-5 text-primary" />} label="Pagamento seguro" />
-              <Trust icon={<Zap className="h-5 w-5 text-primary" />} label="PIX disponível" />
+              <Trust icon={<Zap className="h-5 w-5 text-primary" />} label="Emissão digital" />
               <Trust icon={<TicketCheck className="h-5 w-5 text-primary" />} label="Ingresso 100% digital" />
             </div>
           </div>

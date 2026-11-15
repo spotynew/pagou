@@ -272,7 +272,7 @@ function EventForm({
       <Field label="Tipo do ingresso" name="ticketName" defaultValue="Ingresso" required />
       <Field label="Setor" name="sector" placeholder="Pista, plateia, VIP…" />
       <Field label="Nome do lote" name="batchName" defaultValue="1º lote" required />
-      <Field label="Preço (R$)" name="price" type="number" min="1" step="0.01" required />
+      <Field label="Preço (R$; use 0 para gratuito)" name="price" type="number" min="0" step="0.01" required />
       <Field
         label="Quantidade disponível"
         name="quantityTotal"

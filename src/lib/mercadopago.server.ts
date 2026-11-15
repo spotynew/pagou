@@ -1,3 +1,8 @@
+import {
+  assertMercadoPagoAvailable,
+  getMercadoPagoAvailability,
+} from "@/lib/payment-availability";
+
 const API_BASE = "https://api.mercadopago.com";
 
 export type MercadoPagoOrderPayment = {
@@ -28,16 +33,12 @@ export type MercadoPagoOrder = {
 };
 
 function accessToken() {
-  const token = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
-  if (!token) throw new Error("MERCADO_PAGO_ACCESS_TOKEN não configurado");
-  if (!token.startsWith("APP_USR-")) {
-    throw new Error("Use o Access Token APP_USR da aplicação configurada com API de Orders");
-  }
-  return token;
+  assertMercadoPagoAvailable(process.env);
+  return process.env.MERCADO_PAGO_ACCESS_TOKEN!.trim();
 }
 
 function isTestMode() {
-  return process.env.MERCADO_PAGO_TEST_MODE === "true";
+  return getMercadoPagoAvailability(process.env).sandbox;
 }
 
 async function mercadoPagoRequest<T>(path: string, init?: RequestInit): Promise<T> {

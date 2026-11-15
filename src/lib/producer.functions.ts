@@ -117,7 +117,7 @@ const createEventInput = z.object({
   ticketName: z.string().trim().min(2).max(80),
   sector: z.string().trim().max(80).optional(),
   batchName: z.string().trim().min(2).max(80),
-  priceCents: z.number().int().min(100).max(100_000_000),
+  priceCents: z.number().int().min(0).max(100_000_000),
   quantityTotal: z.number().int().min(1).max(100_000),
   maxPerOrder: z.number().int().min(1).max(10),
 });

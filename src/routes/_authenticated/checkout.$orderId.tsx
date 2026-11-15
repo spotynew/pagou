@@ -94,7 +94,7 @@ function CheckoutPage() {
     );
   }
 
-  const { order, payment } = orderQuery.data;
+  const { order, payment, paymentsEnabled, paymentSandbox } = orderQuery.data;
   // O pedido só é concluído após o fulfillment confirmar estoque e emissão.
   const isPaid = order.status === "paid";
   const isDemoPayment = payment?.provider_payment_id?.startsWith("demo-") ?? false;
@@ -141,7 +141,11 @@ function CheckoutPage() {
                     <div>
                       <p className="font-semibold">PIX</p>
                       <p className="text-xs text-muted-foreground">
-                        Aprovação automática em segundos
+                        {paymentsEnabled
+                          ? paymentSandbox
+                            ? "Ambiente de testes do Mercado Pago"
+                            : "Integração configurada"
+                          : "Pagamento online temporariamente indisponível"}
                       </p>
                     </div>
                   </div>
@@ -170,11 +174,11 @@ function CheckoutPage() {
                 <Button
                   className="mt-5 w-full rounded-xl"
                   size="lg"
-                  disabled={!accepted || confirm.isPending}
+                  disabled={!accepted || confirm.isPending || !paymentsEnabled}
                   onClick={() => confirm.mutate()}
                 >
                   {confirm.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Gerar cobrança
+                  {paymentsEnabled ? "Gerar cobrança" : "Pagamento indisponível"}
                 </Button>
               </section>
             )}

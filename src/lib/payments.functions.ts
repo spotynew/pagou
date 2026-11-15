@@ -12,6 +12,8 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { createPixOrder, getOrderPayment, mapMercadoPagoStatus } =
       await import("@/lib/mercadopago.server");
+    const { assertMercadoPagoAvailable } = await import("@/lib/payment-availability");
+    assertMercadoPagoAvailable(process.env);
 
     const { data: order, error } = await supabase
       .from("orders")

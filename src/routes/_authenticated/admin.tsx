@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatBRL } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { appSettingsQuery } from "@/lib/app-settings";
@@ -14,8 +13,12 @@ import { updateAppSettings } from "@/lib/app-settings.functions";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RoleGate } from "@/components/auth/RoleGate";
-import { supabase } from "@/integrations/supabase/client";
-import { listAdminUsers, manageAdminUser } from "@/lib/admin-users.functions";
+import {
+  listAdminSellers,
+  listAdminUsers,
+  manageAdminUser,
+  reviewAdminSeller,
+} from "@/lib/admin-users.functions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,25 +50,16 @@ function AdminPanel() {
   return (
     <SiteShell>
       <PageHeader
-        eyebrow="PAGOU · staff · Modo demonstração"
+        eyebrow="PAGOU · administração"
         title="Painel administrativo"
-        subtitle="Dados fictícios para navegação. Nenhuma ação afeta pagamentos reais."
+        subtitle="Gerencie contas e produtores com as permissões da sua conta."
       />
       <div className="mx-auto max-w-7xl px-4 py-10">
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi label="GMV do mês" value={formatBRL(89211700)} />
-          <Kpi label="Taxa média" value="10,0%" />
-          <Kpi label="Contas ativas" value="1.284" />
-          <Kpi label="Reembolsos abertos" value="3" />
-        </div>
         <Tabs defaultValue="vendedores">
           <TabsList>
             <TabsTrigger value="vendedores">Vendedores</TabsTrigger>
             <TabsTrigger value="usuarios">Usuários</TabsTrigger>
-            <TabsTrigger value="produtos">Produtos</TabsTrigger>
             <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
-            <TabsTrigger value="reembolsos">Reembolsos</TabsTrigger>
-            <TabsTrigger value="auditoria">Auditoria</TabsTrigger>
             <TabsTrigger value="contato">Contato</TabsTrigger>
           </TabsList>
 
@@ -77,39 +71,17 @@ function AdminPanel() {
             <AdminUsers />
           </TabsContent>
 
-          <TabsContent value="produtos" className="mt-6">
-            <AdminTable
-              rows={[
-                ["PRD-556", "Baile do Terraço", "Publicado", formatBRL(120000)],
-                ["PRD-555", "Curso: Growth do Zero", "Em análise", formatBRL(29900)],
-              ]}
-              cols={["ID", "Produto", "Status", "GMV"]}
-            />
-          </TabsContent>
-
           <TabsContent value="pagamentos" className="mt-6">
-            <p className="text-sm text-muted-foreground">
-              Integração com Mercado Pago será exibida aqui. Nesta etapa, dados demonstrativos.
-            </p>
-          </TabsContent>
-
-          <TabsContent value="reembolsos" className="mt-6">
-            <p className="text-sm text-muted-foreground">Nenhum reembolso pendente de aprovação.</p>
-          </TabsContent>
-
-          <TabsContent value="auditoria" className="mt-6">
-            <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
-              {[
-                "Administrador aprovou vendedor ACC-101",
-                "Sistema registrou webhook aprovado para PGU-9012",
-                "Administrador suspendeu produto PRD-441",
-              ].map((l, i) => (
-                <li key={i} className="flex items-center justify-between p-4 text-sm">
-                  <span>{l}</span>
-                  <Badge variant="outline">agora</Badge>
-                </li>
-              ))}
-            </ul>
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
+              <h2 className="font-display text-lg font-semibold">Histórico de pagamentos</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Consulte somente transações registradas. Pagamentos online permanecem bloqueados até
+                a liberação explícita da integração.
+              </p>
+              <Button asChild variant="outline" className="mt-5">
+                <Link to="/admin-pagamentos">Abrir pagamentos</Link>
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="contato" className="mt-6">
@@ -246,40 +218,46 @@ function AdminUsers() {
 
 function SellerApplications() {
   const queryClient = useQueryClient();
+  const listSellers = useServerFn(listAdminSellers);
+  const reviewSeller = useServerFn(reviewAdminSeller);
   const applications = useQuery({
     queryKey: ["admin-seller-applications"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("seller_accounts")
-        .select("id, display_name, legal_name, document, status, created_at")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () => listSellers(),
   });
   const review = useMutation({
-    mutationFn: async ({ id, approve }: { id: string; approve: boolean }) => {
-      const { error } = await supabase.rpc("review_seller_account", {
-        _seller_id: id,
-        _approve: approve,
-      });
-      if (error) throw error;
-    },
-    onSuccess: async () => {
+    mutationFn: (input: { id: string; approve: boolean }) =>
+      reviewSeller({ data: { sellerId: input.id, approve: input.approve } }),
+    onSuccess: async (_, input) => {
       await queryClient.invalidateQueries({ queryKey: ["admin-seller-applications"] });
-      toast.success("Cadastro revisado");
+      await queryClient.invalidateQueries({ queryKey: ["current-user-roles"] });
+      toast.success(input.approve ? "Produtor aprovado" : "Produtor suspenso");
     },
     onError: (error: Error) => toast.error(error.message),
   });
   if (applications.isPending)
     return <p className="text-sm text-muted-foreground">Carregando cadastros…</p>;
-  if (!applications.data?.length)
-    return (
-      <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-        Nenhuma solicitação de vendedor recebida.
-      </p>
-    );
+  if (applications.isError)
+    return <p className="text-sm text-destructive">Não foi possível carregar os produtores.</p>;
+
+  const sellers = applications.data ?? [];
+  const counts = {
+    approved: sellers.filter((seller) => seller.status === "approved").length,
+    pending: sellers.filter((seller) => seller.status === "pending").length,
+    suspended: sellers.filter((seller) => seller.status === "suspended").length,
+  };
   return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi label="Produtores" value={String(sellers.length)} />
+        <Kpi label="Aprovados" value={String(counts.approved)} />
+        <Kpi label="Aguardando" value={String(counts.pending)} />
+        <Kpi label="Suspensos" value={String(counts.suspended)} />
+      </div>
+      {!sellers.length ? (
+        <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          Nenhuma solicitação de vendedor recebida.
+        </p>
+      ) : (
     <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
       <table className="w-full min-w-[760px] text-sm">
         <thead className="bg-secondary/60 text-left text-xs uppercase tracking-widest text-muted-foreground">
@@ -292,7 +270,7 @@ function SellerApplications() {
           </tr>
         </thead>
         <tbody>
-          {applications.data.map((seller) => (
+          {sellers.map((seller) => (
             <tr key={seller.id} className="border-t border-border">
               <td className="p-4 font-medium">{seller.display_name}</td>
               <td className="p-4">{seller.legal_name}</td>
@@ -329,6 +307,8 @@ function SellerApplications() {
           ))}
         </tbody>
       </table>
+    </div>
+      )}
     </div>
   );
 }

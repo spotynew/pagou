@@ -2,21 +2,12 @@ import { createFileRoute, Navigate, Outlet, useRouterState } from "@tanstack/rea
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { safeAuthRedirect } from "@/lib/auth-redirect";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   component: AuthenticatedLayout,
 });
-
-function sanitizeRedirect(pathname: string, search: string): string {
-  const candidate = `${pathname}${search ?? ""}`;
-  if (!candidate.startsWith("/")) return "/";
-  if (candidate.startsWith("//")) return "/";
-  if (candidate.startsWith("/auth")) return "/";
-  // Bloqueia redirects aninhados
-  if (/[?&]redirect=/i.test(candidate)) return "/";
-  return candidate;
-}
 
 function AuthenticatedLayout() {
   const [loading, setLoading] = useState(true);
@@ -46,7 +37,7 @@ function AuthenticatedLayout() {
 
   if (!user) {
     if (pathname === "/auth") return <Outlet />;
-    const redirect = sanitizeRedirect(pathname, searchStr ?? "");
+    const redirect = safeAuthRedirect(`${pathname}${searchStr ?? ""}`) ?? "/";
     return (
       <Navigate
         to="/auth"

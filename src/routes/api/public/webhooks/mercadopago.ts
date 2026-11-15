@@ -19,6 +19,8 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const { assertMercadoPagoAvailable } = await import("@/lib/payment-availability");
+          assertMercadoPagoAvailable(process.env);
           const contentLength = Number(request.headers.get("content-length") ?? 0);
           if (contentLength > 1_000_000) return json({ error: "payload_too_large" }, 413);
 
@@ -89,14 +91,16 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
           return json({ error: "processing_failed" }, 500);
         }
       },
-      GET: async () =>
-        json({
-          status: "ok",
+      GET: async () => {
+        const { getMercadoPagoAvailability } = await import("@/lib/payment-availability");
+        const availability = getMercadoPagoAvailability(process.env);
+        return json({
+          status: availability.enabled ? "ready" : "disabled",
           provider: "mercadopago",
-          configured: Boolean(
-            process.env.MERCADO_PAGO_ACCESS_TOKEN && process.env.MERCADO_PAGO_WEBHOOK_SECRET,
-          ),
-        }),
+          configured: availability.enabled,
+          sandbox: availability.sandbox,
+        });
+      },
     },
   },
 });
