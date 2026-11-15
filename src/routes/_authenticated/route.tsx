@@ -37,7 +37,7 @@ function AuthenticatedLayout() {
 
   if (!user) {
     if (pathname === "/auth") return <Outlet />;
-    const redirect = sanitizeRedirect(pathname, searchStr ?? "");
+    const redirect = safeAuthRedirect(`${pathname}${searchStr ?? ""}`) ?? "/";
     return (
       <Navigate
         to="/auth"

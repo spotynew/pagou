@@ -160,7 +160,7 @@ function MyPurchases() {
                   <div className="md:col-span-2">
                     <EmptyState
                       icon={Ticket}
-                      text="Nenhum ingresso emitido. Ele aparecerá aqui automaticamente após a aprovação do pagamento."
+                      text="Nenhum ingresso emitido. Ingressos gratuitos aparecem aqui na hora; ingressos pagos, somente após confirmação."
                     />
                   </div>
                 ) : (

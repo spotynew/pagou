@@ -206,7 +206,14 @@ export const getDraftOrder = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    return { order, payment };
+    const { getMercadoPagoAvailability } = await import("@/lib/payment-availability");
+    const paymentAvailability = getMercadoPagoAvailability(process.env);
+    return {
+      order,
+      payment,
+      paymentsEnabled: paymentAvailability.enabled,
+      paymentSandbox: paymentAvailability.sandbox,
+    };
   });
 
 export const confirmDraftOrder = createServerFn({ method: "POST" })

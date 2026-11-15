@@ -3,6 +3,7 @@ import { z } from "zod";
 import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { createDraftOrder } from "@/lib/checkout.functions";
+import { issueFreeEventTickets } from "@/lib/free-tickets.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { eventBySlugQuery } from "@/lib/queries";
 import { SiteShell } from "@/components/site/SiteShell";

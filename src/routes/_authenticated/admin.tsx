@@ -50,25 +50,16 @@ function AdminPanel() {
   return (
     <SiteShell>
       <PageHeader
-        eyebrow="PAGOU · staff · Modo demonstração"
+        eyebrow="PAGOU · administração"
         title="Painel administrativo"
-        subtitle="Dados fictícios para navegação. Nenhuma ação afeta pagamentos reais."
+        subtitle="Gerencie contas e produtores com as permissões da sua conta."
       />
       <div className="mx-auto max-w-7xl px-4 py-10">
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi label="GMV do mês" value={formatBRL(89211700)} />
-          <Kpi label="Taxa média" value="10,0%" />
-          <Kpi label="Contas ativas" value="1.284" />
-          <Kpi label="Reembolsos abertos" value="3" />
-        </div>
         <Tabs defaultValue="vendedores">
           <TabsList>
             <TabsTrigger value="vendedores">Vendedores</TabsTrigger>
             <TabsTrigger value="usuarios">Usuários</TabsTrigger>
-            <TabsTrigger value="produtos">Produtos</TabsTrigger>
             <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
-            <TabsTrigger value="reembolsos">Reembolsos</TabsTrigger>
-            <TabsTrigger value="auditoria">Auditoria</TabsTrigger>
             <TabsTrigger value="contato">Contato</TabsTrigger>
           </TabsList>
 
@@ -80,39 +71,17 @@ function AdminPanel() {
             <AdminUsers />
           </TabsContent>
 
-          <TabsContent value="produtos" className="mt-6">
-            <AdminTable
-              rows={[
-                ["PRD-556", "Baile do Terraço", "Publicado", formatBRL(120000)],
-                ["PRD-555", "Curso: Growth do Zero", "Em análise", formatBRL(29900)],
-              ]}
-              cols={["ID", "Produto", "Status", "GMV"]}
-            />
-          </TabsContent>
-
           <TabsContent value="pagamentos" className="mt-6">
-            <p className="text-sm text-muted-foreground">
-              Integração com Mercado Pago será exibida aqui. Nesta etapa, dados demonstrativos.
-            </p>
-          </TabsContent>
-
-          <TabsContent value="reembolsos" className="mt-6">
-            <p className="text-sm text-muted-foreground">Nenhum reembolso pendente de aprovação.</p>
-          </TabsContent>
-
-          <TabsContent value="auditoria" className="mt-6">
-            <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
-              {[
-                "Administrador aprovou vendedor ACC-101",
-                "Sistema registrou webhook aprovado para PGU-9012",
-                "Administrador suspendeu produto PRD-441",
-              ].map((l, i) => (
-                <li key={i} className="flex items-center justify-between p-4 text-sm">
-                  <span>{l}</span>
-                  <Badge variant="outline">agora</Badge>
-                </li>
-              ))}
-            </ul>
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
+              <h2 className="font-display text-lg font-semibold">Histórico de pagamentos</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Consulte somente transações registradas. Pagamentos online permanecem bloqueados até
+                a liberação explícita da integração.
+              </p>
+              <Button asChild variant="outline" className="mt-5">
+                <Link to="/admin-pagamentos">Abrir pagamentos</Link>
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="contato" className="mt-6">
