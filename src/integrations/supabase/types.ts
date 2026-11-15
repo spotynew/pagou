@@ -1158,6 +1158,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      issue_free_event_tickets: {
+        Args: { _batch_id: string; _event_id: string; _quantity: number }
+        Returns: string
+      }
       redeem_ticket: {
         Args: { _code: string }
         Returns: {
