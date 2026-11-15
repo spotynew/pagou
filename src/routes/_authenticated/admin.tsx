@@ -270,7 +270,7 @@ function SellerApplications() {
           </tr>
         </thead>
         <tbody>
-          {applications.data.map((seller) => (
+          {sellers.map((seller) => (
             <tr key={seller.id} className="border-t border-border">
               <td className="p-4 font-medium">{seller.display_name}</td>
               <td className="p-4">{seller.legal_name}</td>
@@ -307,6 +307,8 @@ function SellerApplications() {
           ))}
         </tbody>
       </table>
+    </div>
+      )}
     </div>
   );
 }

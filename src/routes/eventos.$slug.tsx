@@ -238,7 +238,7 @@ function EventDetail() {
                 <div className="flex items-center gap-3">
                   <button type="button" aria-label="Diminuir quantidade" onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-8 w-8 place-items-center rounded-full border border-border hover:bg-secondary"><Minus className="h-4 w-4" aria-hidden /></button>
                   <span className="w-6 text-center font-semibold">{qty}</span>
-                  <button type="button" aria-label="Aumentar quantidade" onClick={() => setQty((q) => Math.min(10, q + 1))} className="grid h-8 w-8 place-items-center rounded-full border border-border hover:bg-secondary"><Plus className="h-4 w-4" /></button>
+                  <button type="button" aria-label="Aumentar quantidade" onClick={() => setQty((q) => Math.min(Math.min(selectedBatch?.max_per_order ?? 10, 10), q + 1))} className="grid h-8 w-8 place-items-center rounded-full border border-border hover:bg-secondary"><Plus className="h-4 w-4" /></button>
                 </div>
               </div>
 
@@ -253,10 +253,19 @@ function EventDetail() {
                 disabled={!selectedBatch || authLoading || startCheckout.isPending}
                 onClick={handleBuyClick}
               >
-                {authLoading ? "Carregando…" : startCheckout.isPending ? "Reservando…" : "Comprar ingresso"}
+                {authLoading
+                  ? "Carregando…"
+                  : startCheckout.isPending
+                    ? "Processando…"
+                    : selectedBatch?.price_cents === 0
+                      ? "Obter ingresso gratuito"
+                      : "Continuar pedido"}
               </Button>
               <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Pagamento processado com segurança pela PAGOU.
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                {selectedBatch?.price_cents === 0
+                  ? "Emissão gratuita, sem cobrança."
+                  : "Você revisará o pedido antes de qualquer cobrança."}
               </div>
             </div>
           </aside>

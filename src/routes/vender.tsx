@@ -41,7 +41,7 @@ export const Route = createFileRoute("/vender")({
 const directPlans = [
   {
     name: "Start",
-    price: "299",
+    price: "Sob consulta",
     description: "Para quem está começando a vender com estrutura profissional.",
     limit: "Até R$ 10 mil/mês ou 200 vendas",
     features: [
@@ -54,7 +54,7 @@ const directPlans = [
   },
   {
     name: "Pro",
-    price: "499",
+    price: "Sob consulta",
     description: "Para operações frequentes que precisam de mais autonomia.",
     limit: "Até R$ 25 mil/mês ou 1.000 vendas",
     features: [
@@ -67,7 +67,7 @@ const directPlans = [
   },
   {
     name: "Growth",
-    price: "990",
+    price: "Sob consulta",
     description: "Para produtores em crescimento com eventos e cursos.",
     limit: "Até R$ 50 mil/mês ou 3.000 vendas",
     features: [
@@ -80,7 +80,7 @@ const directPlans = [
   },
   {
     name: "Gestão própria",
-    price: "1.950",
+    price: "Sob consulta",
     description: "Uma operação completa de vendas com implantação assistida.",
     limit: "Até R$ 100 mil/mês ou 10.000 vendas",
     setup: "Implantação a partir de R$ 2.500",
