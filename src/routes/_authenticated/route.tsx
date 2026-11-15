@@ -9,16 +9,6 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
 });
 
-function sanitizeRedirect(pathname: string, search: string): string {
-  const candidate = `${pathname}${search ?? ""}`;
-  if (!candidate.startsWith("/")) return "/";
-  if (candidate.startsWith("//")) return "/";
-  if (candidate.startsWith("/auth")) return "/";
-  // Bloqueia redirects aninhados
-  if (/[?&]redirect=/i.test(candidate)) return "/";
-  return candidate;
-}
-
 function AuthenticatedLayout() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);

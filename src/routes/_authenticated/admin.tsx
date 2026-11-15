@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatBRL } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { appSettingsQuery } from "@/lib/app-settings";
@@ -14,8 +13,12 @@ import { updateAppSettings } from "@/lib/app-settings.functions";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RoleGate } from "@/components/auth/RoleGate";
-import { supabase } from "@/integrations/supabase/client";
-import { listAdminUsers, manageAdminUser } from "@/lib/admin-users.functions";
+import {
+  listAdminSellers,
+  listAdminUsers,
+  manageAdminUser,
+  reviewAdminSeller,
+} from "@/lib/admin-users.functions";
 import {
   AlertDialog,
   AlertDialogAction,

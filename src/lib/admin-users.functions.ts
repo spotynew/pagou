@@ -35,6 +35,33 @@ export const listAdminUsers = createServerFn({ method: "GET" })
     }));
   });
 
+export const listAdminSellers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context);
+    const { data, error } = await context.supabase
+      .from("seller_accounts")
+      .select("id, display_name, legal_name, document, status, created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const reviewAdminSeller = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) =>
+    z.object({ sellerId: z.string().uuid(), approve: z.boolean() }).parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase.rpc("review_seller_account", {
+      _seller_id: data.sellerId,
+      _approve: data.approve,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 const actionInput = z.object({
   userId: z.string().uuid(),
   action: z.enum(["ban", "unban", "delete"]),
