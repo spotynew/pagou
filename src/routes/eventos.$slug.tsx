@@ -91,21 +91,36 @@ function EventDetail() {
   const selectedBatch = allBatches.find((b) => b.id === selectedBatchId);
 
   const createDraft = useServerFn(createDraftOrder);
+  const issueFree = useServerFn(issueFreeEventTickets);
   const startCheckout = useMutation({
     mutationFn: async () => {
       if (!selectedBatch) throw new Error("Escolha um lote");
-      return createDraft({
-        data: {
-          kind: "event",
-          eventId: event.id,
-          ticketBatchId: selectedBatch.id,
-          quantity: qty,
-        },
-      });
+      const input = {
+        eventId: event.id,
+        ticketBatchId: selectedBatch.id,
+        quantity: qty,
+      };
+      if (selectedBatch.price_cents === 0) {
+        const result = await issueFree({ data: input });
+        return { ...result, free: true };
+      }
+      const result = await createDraft({ data: { kind: "event", ...input } });
+      return { ...result, free: false };
     },
-    onSuccess: ({ orderId }) => navigate({ to: "/checkout/$orderId", params: { orderId } }),
-    onError: (e: any) =>
-      toast.error(e?.message ?? "Não foi possível iniciar o checkout. Tente novamente."),
+    onSuccess: ({ orderId, free }) => {
+      if (free) {
+        toast.success(qty === 1 ? "Ingresso gratuito emitido" : "Ingressos gratuitos emitidos");
+        navigate({ to: "/minhas-compras" });
+        return;
+      }
+      navigate({ to: "/checkout/$orderId", params: { orderId } });
+    },
+    onError: (error: unknown) =>
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível continuar. Tente novamente.",
+      ),
   });
 
   function handleBuyClick() {

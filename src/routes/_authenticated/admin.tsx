@@ -218,40 +218,46 @@ function AdminUsers() {
 
 function SellerApplications() {
   const queryClient = useQueryClient();
+  const listSellers = useServerFn(listAdminSellers);
+  const reviewSeller = useServerFn(reviewAdminSeller);
   const applications = useQuery({
     queryKey: ["admin-seller-applications"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("seller_accounts")
-        .select("id, display_name, legal_name, document, status, created_at")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () => listSellers(),
   });
   const review = useMutation({
-    mutationFn: async ({ id, approve }: { id: string; approve: boolean }) => {
-      const { error } = await supabase.rpc("review_seller_account", {
-        _seller_id: id,
-        _approve: approve,
-      });
-      if (error) throw error;
-    },
-    onSuccess: async () => {
+    mutationFn: (input: { id: string; approve: boolean }) =>
+      reviewSeller({ data: { sellerId: input.id, approve: input.approve } }),
+    onSuccess: async (_, input) => {
       await queryClient.invalidateQueries({ queryKey: ["admin-seller-applications"] });
-      toast.success("Cadastro revisado");
+      await queryClient.invalidateQueries({ queryKey: ["current-user-roles"] });
+      toast.success(input.approve ? "Produtor aprovado" : "Produtor suspenso");
     },
     onError: (error: Error) => toast.error(error.message),
   });
   if (applications.isPending)
     return <p className="text-sm text-muted-foreground">Carregando cadastros…</p>;
-  if (!applications.data?.length)
-    return (
-      <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-        Nenhuma solicitação de vendedor recebida.
-      </p>
-    );
+  if (applications.isError)
+    return <p className="text-sm text-destructive">Não foi possível carregar os produtores.</p>;
+
+  const sellers = applications.data ?? [];
+  const counts = {
+    approved: sellers.filter((seller) => seller.status === "approved").length,
+    pending: sellers.filter((seller) => seller.status === "pending").length,
+    suspended: sellers.filter((seller) => seller.status === "suspended").length,
+  };
   return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi label="Produtores" value={String(sellers.length)} />
+        <Kpi label="Aprovados" value={String(counts.approved)} />
+        <Kpi label="Aguardando" value={String(counts.pending)} />
+        <Kpi label="Suspensos" value={String(counts.suspended)} />
+      </div>
+      {!sellers.length ? (
+        <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          Nenhuma solicitação de vendedor recebida.
+        </p>
+      ) : (
     <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
       <table className="w-full min-w-[760px] text-sm">
         <thead className="bg-secondary/60 text-left text-xs uppercase tracking-widest text-muted-foreground">

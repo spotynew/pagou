@@ -94,7 +94,7 @@ function CheckoutPage() {
     );
   }
 
-  const { order, payment } = orderQuery.data;
+  const { order, payment, paymentsEnabled, paymentSandbox } = orderQuery.data;
   // O pedido só é concluído após o fulfillment confirmar estoque e emissão.
   const isPaid = order.status === "paid";
   const isDemoPayment = payment?.provider_payment_id?.startsWith("demo-") ?? false;
