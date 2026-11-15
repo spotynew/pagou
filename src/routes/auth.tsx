@@ -10,6 +10,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/site/Logo";
 import { ShieldCheck } from "lucide-react";
+import { safeAuthRedirect } from "@/lib/auth-redirect";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({

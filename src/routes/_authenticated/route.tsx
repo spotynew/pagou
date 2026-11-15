@@ -2,6 +2,7 @@ import { createFileRoute, Navigate, Outlet, useRouterState } from "@tanstack/rea
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { safeAuthRedirect } from "@/lib/auth-redirect";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,

@@ -49,7 +49,7 @@ export function eventBySlugQuery(slug: string) {
       if (!event) return null;
       const { data: types } = await supabase
         .from("ticket_types")
-        .select("id, name, sector, description, sort_order, ticket_batches(id, name, price_cents, quantity_total, quantity_sold, active, sort_order)")
+        .select("id, name, sector, description, sort_order, ticket_batches(id, name, price_cents, quantity_total, quantity_sold, active, max_per_order, sort_order)")
         .eq("event_id", event.id)
         .order("sort_order");
       return { event, ticketTypes: types ?? [] };

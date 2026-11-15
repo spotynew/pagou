@@ -1,3 +1,8 @@
+import {
+  assertMercadoPagoAvailable,
+  getMercadoPagoAvailability,
+} from "@/lib/payment-availability";
+
 const API_BASE = "https://api.mercadopago.com";
 
 export type MercadoPagoOrderPayment = {
