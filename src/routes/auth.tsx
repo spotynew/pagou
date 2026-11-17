@@ -25,6 +25,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [loading, setLoading] = useState(false);
+  const googleAuthEnabled = import.meta.env.VITE_GOOGLE_AUTH_ENABLED === "true";
 
   // Apenas caminhos internos (mesma origem) — nunca URLs externas.
   const safeRedirect = safeAuthRedirect(search.redirect);
@@ -120,12 +121,17 @@ function AuthPage() {
             <h1 className="font-display text-2xl font-bold">Acesse sua conta</h1>
             <p className="text-sm text-muted-foreground">Entre para acompanhar suas compras.</p>
 
-            <Button type="button" variant="outline" className="mt-6 w-full" onClick={google}>
-              Continuar com Google
-            </Button>
-            <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-muted-foreground">
-              <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
-            </div>
+            {googleAuthEnabled && (
+              <>
+                <Button type="button" variant="outline" className="mt-6 w-full" onClick={google}>
+                  Continuar com Google
+                </Button>
+                <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-muted-foreground">
+                  <div className="h-px flex-1 bg-border" /> ou{" "}
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+              </>
+            )}
 
             <Tabs defaultValue="signin">
               <TabsList className="grid w-full grid-cols-2">
