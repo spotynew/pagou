@@ -81,13 +81,13 @@ function AuthPage() {
 
   async function google() {
     try {
-      const { lovable } = await import("@/integrations/lovable/index");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const destination = safeRedirect ?? "/minhas-compras";
+      const redirectTo = new URL(destination, window.location.origin).toString();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
       });
-      if (result.error) return toast.error("Não foi possível entrar com o Google.");
-      if (result.redirected) return;
-      goAfterAuth();
+      if (error) toast.error("Não foi possível entrar com o Google.");
     } catch {
       toast.error("Login com Google indisponível.");
     }
@@ -182,7 +182,7 @@ function AuthPage() {
                   </div>
                   <div>
                     <Label htmlFor="password2">Senha</Label>
-                    <Input id="password2" name="password" type="password" minLength={6} required />
+                    <Input id="password2" name="password" type="password" minLength={10} autoComplete="new-password" required />
                   </div>
                   <p className="border-t border-border pt-4 text-sm font-semibold">Endereço</p>
                   <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
