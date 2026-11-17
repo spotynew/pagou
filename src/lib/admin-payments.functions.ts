@@ -72,7 +72,7 @@ export const listAdminPayments = createServerFn({ method: "GET" })
 
 export const reconcileAdminPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => z.object({ paymentId: z.string().uuid() }).parse(raw))
+  .validator((raw: unknown) => z.object({ paymentId: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

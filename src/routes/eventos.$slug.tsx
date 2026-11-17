@@ -31,7 +31,7 @@ export const Route = createFileRoute("/eventos/$slug")({
   head: ({ loaderData, params }) => {
     const title = loaderData?.title ?? "Evento";
     const desc = (loaderData?.description || "Garanta seu ingresso com pagamento seguro pela PAGOU.").slice(0, 155);
-    const url = `https://pagou.lovable.app/eventos/${params.slug}`;
+    const url = `https://pagou.vercel.app/eventos/${params.slug}`;
     return {
       meta: [
         { title: `${title} — PAGOU` },

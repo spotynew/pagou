@@ -9,9 +9,9 @@ export const Route = createFileRoute("/termos")({
       { title: "Termos de uso — PAGOU" },
       { name: "description", content: "Termos e condições de uso da plataforma PAGOU." },
       { property: "og:title", content: "Termos de uso — PAGOU" },
-      { property: "og:url", content: "https://pagou.lovable.app/termos" },
+      { property: "og:url", content: "https://pagou.vercel.app/termos" },
     ],
-    links: [{ rel: "canonical", href: "https://pagou.lovable.app/termos" }],
+    links: [{ rel: "canonical", href: "https://pagou.vercel.app/termos" }],
   }),
   component: TermosPage,
 });

@@ -7,4 +7,4 @@ Disallow: /checkin
 Disallow: /minhas-compras
 Disallow: /checkout
 
-Sitemap: https://pagou.lovable.app/sitemap.xml
+Sitemap: https://pagou.vercel.app/sitemap.xml

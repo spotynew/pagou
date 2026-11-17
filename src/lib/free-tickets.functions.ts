@@ -10,7 +10,7 @@ const freeTicketInput = z.object({
 
 export const issueFreeEventTickets = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => freeTicketInput.parse(raw))
+  .validator((raw: unknown) => freeTicketInput.parse(raw))
   .handler(async ({ data, context }) => {
     const { data: orderId, error } = await context.supabase.rpc("issue_free_event_tickets", {
       _event_id: data.eventId,

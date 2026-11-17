@@ -25,6 +25,9 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
           if (contentLength > 1_000_000) return json({ error: "payload_too_large" }, 413);
 
           const rawBody = await request.text();
+          if (new TextEncoder().encode(rawBody).byteLength > 1_000_000) {
+            return json({ error: "payload_too_large" }, 413);
+          }
           let body: NotificationBody;
           try {
             body = JSON.parse(rawBody) as NotificationBody;

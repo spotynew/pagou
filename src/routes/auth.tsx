@@ -25,6 +25,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [loading, setLoading] = useState(false);
+  const googleAuthEnabled = import.meta.env.VITE_GOOGLE_AUTH_ENABLED === "true";
 
   // Apenas caminhos internos (mesma origem) — nunca URLs externas.
   const safeRedirect = safeAuthRedirect(search.redirect);
@@ -81,13 +82,13 @@ function AuthPage() {
 
   async function google() {
     try {
-      const { lovable } = await import("@/integrations/lovable/index");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const destination = safeRedirect ?? "/minhas-compras";
+      const redirectTo = new URL(destination, window.location.origin).toString();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
       });
-      if (result.error) return toast.error("Não foi possível entrar com o Google.");
-      if (result.redirected) return;
-      goAfterAuth();
+      if (error) toast.error("Não foi possível entrar com o Google.");
     } catch {
       toast.error("Login com Google indisponível.");
     }
@@ -120,12 +121,17 @@ function AuthPage() {
             <h1 className="font-display text-2xl font-bold">Acesse sua conta</h1>
             <p className="text-sm text-muted-foreground">Entre para acompanhar suas compras.</p>
 
-            <Button type="button" variant="outline" className="mt-6 w-full" onClick={google}>
-              Continuar com Google
-            </Button>
-            <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-muted-foreground">
-              <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
-            </div>
+            {googleAuthEnabled && (
+              <>
+                <Button type="button" variant="outline" className="mt-6 w-full" onClick={google}>
+                  Continuar com Google
+                </Button>
+                <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-muted-foreground">
+                  <div className="h-px flex-1 bg-border" /> ou{" "}
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+              </>
+            )}
 
             <Tabs defaultValue="signin">
               <TabsList className="grid w-full grid-cols-2">
@@ -182,7 +188,7 @@ function AuthPage() {
                   </div>
                   <div>
                     <Label htmlFor="password2">Senha</Label>
-                    <Input id="password2" name="password" type="password" minLength={6} required />
+                    <Input id="password2" name="password" type="password" minLength={10} autoComplete="new-password" required />
                   </div>
                   <p className="border-t border-border pt-4 text-sm font-semibold">Endereço</p>
                   <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
