@@ -24,7 +24,7 @@ const createDraftInput = z.object({
 
 export const createDraftOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => createDraftInput.parse(raw))
+  .validator((raw: unknown) => createDraftInput.parse(raw))
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -185,7 +185,7 @@ export const createDraftOrder = createServerFn({ method: "POST" })
 
 export const getDraftOrder = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => z.object({ orderId: z.string().min(1) }).parse(raw))
+  .validator((raw: unknown) => z.object({ orderId: z.string().min(1) }).parse(raw))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: order, error } = await supabase
@@ -218,7 +218,7 @@ export const getDraftOrder = createServerFn({ method: "GET" })
 
 export const confirmDraftOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) =>
+  .validator((raw: unknown) =>
     z
       .object({
         orderId: z.string().min(1),
