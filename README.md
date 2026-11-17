@@ -30,7 +30,7 @@ Antes de enviar mudanças:
 
 ```bash
 npm run typecheck
-npm run lint
+npm run lint:ci
 npm run build
 ```
 
