@@ -37,6 +37,9 @@ jobs:
       - name: Instalar dependências
         run: npm ci --legacy-peer-deps --no-audit --no-fund
 
+      - name: Auditar vulnerabilidades críticas
+        run: npm audit --omit=dev --audit-level=critical
+
       - name: Verificar tipos
         run: npm run typecheck
 
