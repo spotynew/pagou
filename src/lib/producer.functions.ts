@@ -124,7 +124,7 @@ const createEventInput = z.object({
 
 export const createProducerEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => createEventInput.parse(raw))
+  .validator((raw: unknown) => createEventInput.parse(raw))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin, seller } = await requireProducer(context);
     const { data: event, error: eventError } = await supabaseAdmin
@@ -181,7 +181,7 @@ export const createProducerEvent = createServerFn({ method: "POST" })
 
 export const setProducerEventPublished = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) =>
+  .validator((raw: unknown) =>
     z.object({ eventId: z.string().uuid(), published: z.boolean() }).parse(raw),
   )
   .handler(async ({ data, context }) => {
@@ -203,7 +203,7 @@ const updateEventCoverInput = z.object({
 
 export const updateProducerEventCover = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => updateEventCoverInput.parse(raw))
+  .validator((raw: unknown) => updateEventCoverInput.parse(raw))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin, seller } = await requireProducer(context);
     const { error } = await supabaseAdmin
@@ -245,7 +245,7 @@ const createCourseInput = z.object({
 
 export const createProducerCourse = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => createCourseInput.parse(raw))
+  .validator((raw: unknown) => createCourseInput.parse(raw))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin, seller } = await requireProducer(context);
     const { data: course, error } = await supabaseAdmin
@@ -272,7 +272,7 @@ export const createProducerCourse = createServerFn({ method: "POST" })
 
 export const setProducerCoursePublished = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) =>
+  .validator((raw: unknown) =>
     z.object({ courseId: z.string().uuid(), published: z.boolean() }).parse(raw),
   )
   .handler(async ({ data, context }) => {
