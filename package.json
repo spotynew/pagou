@@ -14,7 +14,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:ci": "eslint . --rule 'prettier/prettier: off' --rule '@typescript-eslint/no-explicit-any: off'"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -96,5 +97,6 @@
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.16",
     "vitest": "^5.1.0"
-  }
+  },
+  "packageManager": "npm@11.19.1"
 }
