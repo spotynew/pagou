@@ -1,0 +1,35 @@
+name: Sincronizar lockfile de segurança do PR 18
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  sync-lock:
+    if: >
+      github.event.issue.number == 18 &&
+      github.event.comment.user.login == 'spotynew' &&
+      github.event.comment.body == '/sync-pagou-security-lock'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/security-performance-vercel
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Atualizar lockfile
+        run: npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
+      - name: Commitar lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Atualiza lockfile com correções de segurança"
+          git push origin HEAD:agent/security-performance-vercel
