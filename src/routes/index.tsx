@@ -21,9 +21,9 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Eventos, cursos e ingressos digitais em um só lugar." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:url", content: "https://pagou.lovable.app/" },
+      { property: "og:url", content: "https://pagou.vercel.app/" },
     ],
-    links: [{ rel: "canonical", href: "https://pagou.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://pagou.vercel.app/" }],
   }),
   loader: async ({ context }) => {
     await Promise.all([
