@@ -21,7 +21,7 @@ export const Route = createFileRoute("/cursos/$slug")({
   head: ({ loaderData, params }) => {
     const title = loaderData?.title ?? "Curso";
     const desc = (loaderData?.description || "Curso disponível na PAGOU.").slice(0, 155);
-    const url = `https://pagou.lovable.app/cursos/${params.slug}`;
+    const url = `https://pagou.vercel.app/cursos/${params.slug}`;
     return {
       meta: [
         { title: `${title} — PAGOU` },
