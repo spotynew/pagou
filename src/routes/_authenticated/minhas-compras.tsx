@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL, formatDateTimeBR } from "@/lib/format";
 
-const PUBLIC_SITE_URL = "https://pagou.lovable.app";
+const PUBLIC_SITE_URL = "https://pagou.vercel.app";
 
 function ticketVerifyUrl(code: string): string {
   const origin =
