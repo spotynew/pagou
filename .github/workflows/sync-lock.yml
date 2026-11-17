@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - agent/security-performance-vercel
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -15,10 +19,11 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Baixar código
+      - name: Baixar branch
         uses: actions/checkout@v4
         with:
           ref: agent/security-performance-vercel
+          persist-credentials: true
 
       - name: Configurar Node 24
         uses: actions/setup-node@v4
@@ -39,4 +44,4 @@ jobs:
             exit 0
           fi
           git commit -m "Sincroniza package-lock com package.json"
-          git push
+          git push origin HEAD:agent/security-performance-vercel
