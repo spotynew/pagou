@@ -22,7 +22,7 @@ const settingsInput = z.object({
 
 export const updateAppSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => settingsInput.parse(raw))
+  .validator((raw: unknown) => settingsInput.parse(raw))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: isAdmin } = await supabase.rpc("has_role", {
