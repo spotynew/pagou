@@ -9,9 +9,9 @@ export const Route = createFileRoute("/privacidade")({
       { title: "Política de privacidade — PAGOU" },
       { name: "description", content: "Como a PAGOU coleta, usa e protege seus dados pessoais." },
       { property: "og:title", content: "Política de privacidade — PAGOU" },
-      { property: "og:url", content: "https://pagou.lovable.app/privacidade" },
+      { property: "og:url", content: "https://pagou.vercel.app/privacidade" },
     ],
-    links: [{ rel: "canonical", href: "https://pagou.lovable.app/privacidade" }],
+    links: [{ rel: "canonical", href: "https://pagou.vercel.app/privacidade" }],
   }),
   component: PrivacidadePage,
 });
