@@ -14,7 +14,7 @@ export type CheckinResult = {
 
 export const redeemTicket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) =>
+  .validator((raw: unknown) =>
     z.object({ code: z.string().trim().min(6).max(128) }).parse(raw),
   )
   .handler(async ({ data, context }) => {
