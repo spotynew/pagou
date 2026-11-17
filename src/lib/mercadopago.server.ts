@@ -117,7 +117,7 @@ export async function createPixOrder(input: {
       processing_mode: "automatic",
       external_reference: input.orderId,
       total_amount: amount,
-      description: input.description.slice(0, 250),
+      description: input.description.slice(0, 150),
       payer,
       transactions: {
         payments: [
