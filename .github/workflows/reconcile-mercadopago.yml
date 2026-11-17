@@ -18,4 +18,4 @@ jobs:
             --request POST \
             --header "Authorization: Bearer ${RECONCILIATION_SECRET}" \
             --header "Content-Type: application/json" \
-            https://pagou.lovable.app/api/internal/reconcile/mercadopago
+            https://pagou.vercel.app/api/internal/reconcile/mercadopago
