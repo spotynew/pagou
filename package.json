@@ -98,5 +98,11 @@
     "vite": "^8.0.16",
     "vitest": "^5.1.0"
   },
-  "packageManager": "npm@11.19.1"
+  "packageManager": "npm@11.19.1",
+  "overrides": {
+    "browserslist": "4.29.6",
+    "baseline-browser-mapping": "2.11.38",
+    "js-yaml": "4.3.2",
+    "source-map-js": "1.2.2"
+  }
 }
