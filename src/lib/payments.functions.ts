@@ -4,7 +4,7 @@ import { z } from "zod";
 
 export const createMercadoPagoPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) =>
+  .validator((raw: unknown) =>
     z.object({ orderId: z.string().uuid(), paymentMethod: z.literal("pix") }).parse(raw),
   )
   .handler(async ({ data, context }) => {
@@ -166,7 +166,7 @@ export const createMercadoPagoPayment = createServerFn({ method: "POST" })
 
 export const simulateApproveDemo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => z.object({ orderId: z.string().uuid() }).parse(raw))
+  .validator((raw: unknown) => z.object({ orderId: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     if (process.env.PAYMENTS_DEMO_MODE !== "true") {
       throw new Error("Simulação de pagamento desativada");
