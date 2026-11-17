@@ -49,7 +49,7 @@ export const listAdminSellers = createServerFn({ method: "GET" })
 
 export const reviewAdminSeller = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) =>
+  .validator((raw: unknown) =>
     z.object({ sellerId: z.string().uuid(), approve: z.boolean() }).parse(raw),
   )
   .handler(async ({ data, context }) => {
@@ -69,7 +69,7 @@ const actionInput = z.object({
 
 export const manageAdminUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => actionInput.parse(raw))
+  .validator((raw: unknown) => actionInput.parse(raw))
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
     if (data.userId === context.userId)
