@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 
-const BASE_URL = "https://pagou.lovable.app";
+const BASE_URL = "https://pagou.vercel.app";
 
 interface SitemapEntry {
   path: string;
